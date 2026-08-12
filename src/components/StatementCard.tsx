@@ -5,7 +5,15 @@ import type { Member } from '@/types';
 import type { InstallmentRow, MemberFinance } from '@/lib/finance';
 import { formatMoney, formatDate, todayISO } from '@/lib/format';
 
-const STATEMENT_WIDTH = 1240;
+const A4 = {
+  width: '210mm',
+  height: '297mm',
+
+  paddingTop: '12mm',
+  paddingBottom: '12mm',
+  paddingLeft: '12mm',
+  paddingRight: '12mm',
+};
 
 export function ShareButtons({
   targetRef,
@@ -144,28 +152,82 @@ export function StatementCard({
 {
   const ref = useRef<HTMLDivElement>(null);
 
-  const today = '2026-09-28';
+  const today = todayISO();
 
-const totalDue = rows.reduce((total, row) => {
-  if (row.dueDate > today) {
-    return total;
-  }
+  console.log("TODAY:", today);
 
-  const unpaidAmount = Math.max(
-    Number(row.amountDue) - Number(row.amountPaid),
-    0,
-  );
+rows.forEach((row) => {
+  console.log({
+    month: row.monthLabel,
+    dueDate: row.dueDate,
+    amountDue: row.amountDue,
+    amountPaid: row.amountPaid,
+    status: row.status,
+  });
+});
 
-  return total + unpaidAmount;
-}, 0);
+const todayDate = new Date(today);
+
+const totalDue = rows
+  .filter((row) => row.monthLabel === "Aug 2026")
+  .reduce((total, row) => {
+    console.log("CHECK ROW", row);
+
+    const dueDate = new Date(row.dueDate);
+    const todayDate = new Date(today);
+
+    console.log({
+      dueDate,
+      todayDate,
+      isFuture: dueDate > todayDate,
+    });
+
+    if (dueDate > todayDate) {
+      return total;
+    }
+
+    return total + Math.max(
+      Number(row.amountDue) - Number(row.amountPaid),
+      0
+    );
+  }, 0);
 
 const currentInstallment =
   rows.find((row) => row.status !== 'PAID')?.amountDue ??
   rows[rows.length - 1]?.amountDue ??
   Number(member.installment_amount);
 
+  const ROWS_PER_PAGE = 12;
+
+const pages: InstallmentRow[][] = [];
+
+for (let i = 0; i < rows.length; i += ROWS_PER_PAGE) {
+  pages.push(rows.slice(i, i + ROWS_PER_PAGE));
+}
+
+const totalRows = rows.length;
+
+const scale =
+  totalRows <= 25
+    ? 1
+    : totalRows <= 35
+    ? 0.92
+    : totalRows <= 45
+    ? 0.84
+    : totalRows <= 60
+    ? 0.76
+    : totalRows <= 80
+    ? 0.68
+    : 0.60;
+
 return (
-    <div>
+    <div
+  style={{
+    transform: `scale(${scale})`,
+    transformOrigin: "top center",
+    width: `${100 / scale}%`,
+  }}
+>
       {/* Screen preview wrapper */}
       <div className="w-full overflow-x-auto">
         {/* Fixed A4 canvas */}
@@ -173,9 +235,20 @@ return (
           ref={ref}
           className="relative bg-white text-slate-900"
           style={{
-  width: `${STATEMENT_WIDTH}px`,
-  padding: '64px 70px',
+  width: A4.width,
+
+  maxHeight: A4.height,
+  paddingTop: A4.paddingTop,
+paddingBottom: A4.paddingBottom,
+paddingLeft: A4.paddingLeft,
+paddingRight: A4.paddingRight,
   boxSizing: 'border-box',
+
+  background: '#ffffff',
+margin: '0 auto',
+overflow: 'visible',
+position: 'relative',
+
   fontFamily:
     'Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
 }}
@@ -184,18 +257,18 @@ return (
           <header className="border-b-[3px] border-slate-900 pb-6">
             <div className="flex items-end justify-between">
               <div>
-                <p className="mb-1 text-[15px] font-semibold uppercase tracking-[0.16em] text-slate-500">
+                <p className="mb-1 text-[11px] font-medium uppercase tracking-[0.12em] text-slate-500">
                   Account Statement
                 </p>
 
-                <h1 className="text-[34px] font-extrabold uppercase tracking-tight">
+                <h1 className="text-[30px] font-bold uppercase tracking-tight">
                   Chitti Payment Statement
                 </h1>
               </div>
 
-              <div className="text-right text-[15px] text-slate-500">
+              <div className="text-right text-[11px] text-slate-500">
                 Generated
-                <div className="mt-1 text-[17px] font-semibold text-slate-900">
+                <div className="mt-1 text-[14px] font-semibold text-slate-900">
                   {formatDate(todayISO())}
                 </div>
               </div>
@@ -203,7 +276,7 @@ return (
           </header>
 
           {/* MEMBER INFORMATION */}
-          <section className="mt-7 grid grid-cols-2 gap-x-16 rounded-xl border border-slate-200 bg-slate-50 px-7 py-5">
+          <section className="mt-5 grid grid-cols-2 gap-x-10 rounded-lg border border-slate-200 bg-slate-50 px-5 py-3">
             <InfoItem
               label="Member"
               value={member.full_name}
@@ -246,10 +319,6 @@ label="Current EMI"
   value={formatMoney(totalDue)}
 />
 
-            <SummaryBox
-              label="Total Paid"
-              value={formatMoney(finance.totalPaid)}
-            />
 
             <SummaryBox
               label="Balance"
@@ -268,36 +337,35 @@ label="Current EMI"
           </section>
 
           {/* PAYMENT TABLE */}
-          <section className="mt-8">
+          <section className="mt-5">
             <div className="mb-3 flex items-center justify-between">
-              <h2 className="text-[20px] font-bold">
+              <h2 className="text-[15px] font-bold">
                 Installment Details
               </h2>
 
-              <p className="text-[14px] text-slate-500">
-                {rows.length} installments
+              <p className="text-[10px] text-slate-500">
+                {rows.length} EMIs
               </p>
             </div>
 
             <table className="w-full table-fixed border-collapse text-[14px]">
               <colgroup>
-  <col style={{ width: '4%' }} />
-  <col style={{ width: '11%' }} />
-  <col style={{ width: '12%' }} />
-  <col style={{ width: '11%' }} />
-  <col style={{ width: '10%' }} />
-  <col style={{ width: '10%' }} />
-  <col style={{ width: '10%' }} />
-  <col style={{ width: '11%' }} />
-  <col style={{ width: '8%' }} />
+  <col style={{ width: '5%' }} />
+
+  <col style={{ width: '15%' }} />
   <col style={{ width: '13%' }} />
+  <col style={{ width: '13%' }} />
+  <col style={{ width: '11%' }} />
+  <col style={{ width: '11%' }} />
+  <col style={{ width: '10%' }} />
+  <col style={{ width: '12%' }} />
 </colgroup>
 
               <thead>
   <tr className="bg-slate-100">
     <TableHeader>#</TableHeader>
 
-    <TableHeader>Month</TableHeader>
+    
 
     <TableHeader>Due Date</TableHeader>
 
@@ -313,9 +381,7 @@ label="Current EMI"
   Amount Paid
 </TableHeader>
 
-<TableHeader align="right">
-  Remaining
-</TableHeader>
+
 
 
 
@@ -334,13 +400,10 @@ label="Current EMI"
 </thead>
 
 <tbody>
-  {rows.map((r) => (
-    <tr key={r.index}>
+  {rows.map((r, index) => (
+    <>
+      <tr key={r.index}>
       <TableCell>{r.index}</TableCell>
-
-      <TableCell>
-        {r.monthLabel}
-      </TableCell>
 
       <TableCell>
         {formatDate(r.dueDate)}
@@ -358,17 +421,7 @@ label="Current EMI"
         {formatMoney(r.amountPaid, false)}
       </TableCell>
 
-      <TableCell
-  align="right"
->
-  {formatMoney(
-    Math.max(
-      Number(r.amountDue) - Number(r.amountPaid),
-      0
-    ),
-    false
-  )}
-</TableCell>
+      
 
 
 
@@ -388,26 +441,36 @@ label="Current EMI"
         <InstallmentStatus status={r.status} />
       </TableCell>
     </tr>
+
+    {member.is_lifted &&
+ member.lifted_month_number === r.index && (
+  <tr>
+    <td
+      colSpan={8}
+      className="border border-amber-300 bg-amber-50 px-3 py-1 text-[11px] font-medium text-amber-800"
+    >
+      ⭐ Lift Paid • Month {member.lifted_month_number} • {formatMoney(r.liftAmount)} • {member.lifted_date ? formatDate(member.lifted_date) : "—"}
+    </td>
+  </tr>
+)}
+
+
+    </>
   ))}
 </tbody>
             </table>
+
+            
+
+
           </section>
 
           {/* TOTAL SECTION */}
           <section className="mt-8 border-t-[3px] border-slate-900 pt-6">
-            <div className="flex items-center justify-between">
+            <div className="flex justify-end">
               <div className="flex gap-12">
-                <TotalItem
-                  label="Total Paid"
-                  value={formatMoney(finance.totalPaid)}
-                />
 
-                <TotalItem
-                  label="Remaining Balance"
-                  value={formatMoney(
-                    finance.remainingBalance,
-                  )}
-                />
+                
               </div>
 
               <StatusBadgeForImage
@@ -417,7 +480,7 @@ label="Current EMI"
           </section>
 
           {/* FOOTER */}
-          <footer className="mt-10 border-t border-slate-200 pt-4">
+          <footer className="mt-5 border-t border-slate-200 pt-2">
             <div className="flex items-center justify-between text-[12px] text-slate-400">
               <span>
                 This statement is generated from the Chitti
@@ -473,7 +536,7 @@ function SummaryBox({
         {label}
       </p>
 
-      <p className="mt-2 whitespace-nowrap text-[18px] font-extrabold text-slate-900">
+     <p className="mt-1 whitespace-nowrap text-[15px] font-extrabold text-slate-900">
         {value}
       </p>
     </div>
@@ -489,7 +552,7 @@ function TableHeader({
 }) {
   return (
     <th
-      className={`border border-slate-200 px-3 py-3 font-bold text-slate-700 ${
+      className={`border border-slate-300 bg-slate-100 px-2 py-1 h-[36px] text-[12px] font-semibold text-black ${
         align === 'right' ? 'text-right' : 'text-left'
       }`}
     >
@@ -507,7 +570,7 @@ function TableCell({
 }) {
   return (
     <td
-      className={`h-[54px] border border-slate-200 px-3 py-2 ${
+      className={`h-[28px] border border-slate-200 px-1.5 py-0.5 text-[11px] ${
         align === 'right' ? 'text-right' : 'text-left'
       }`}
     >
@@ -592,3 +655,5 @@ function StatusBadgeForImage({
     </span>
   );
 }
+
+

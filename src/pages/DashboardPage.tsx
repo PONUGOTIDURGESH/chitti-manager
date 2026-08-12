@@ -103,7 +103,25 @@ if (!selectedChitti && finance.totalExpected > 0) {
 
   const pendingMembers = members
     .filter((m) => !m.archived)
-    .map((m) => ({ member: m, finance: computeMemberFinance(m, payments) }))
+    .map((m) => {
+  const chitti = chittis.find(
+    (c) => c.id === m.chitti_id
+  );
+
+  const chittiSchedules = schedules.filter(
+    (s) => s.chitti_id === m.chitti_id
+  );
+
+  return {
+    member: m,
+    finance: computeMemberFinance(
+      m,
+      payments,
+      chitti,
+      chittiSchedules
+    ),
+  };
+})
     .filter((x) => ['OVERDUE', 'DUE', 'PARTIALLY_PAID', 'DUE_SOON'].includes(x.finance.status))
     .sort((a, b) => a.finance.remainingBalance - b.finance.remainingBalance)
     .reverse();

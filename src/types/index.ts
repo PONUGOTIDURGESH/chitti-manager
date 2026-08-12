@@ -49,6 +49,7 @@ export interface Member {
   total_chitti_amount: number;
   installment_amount: number;
   total_installments: number;
+  units: number;
   due_day: number;
 
   start_date: string | null;
@@ -76,6 +77,8 @@ export interface MemberInput {
   total_chitti_amount: number;
   installment_amount: number;
   total_installments: number;
+
+  units?: number;
 
   due_day?: number;
   start_date?: string | null;
@@ -198,4 +201,43 @@ export interface ChittiScheduleInput {
 
   // Amount available to lift/draw in this particular month
   lift_amount: number;
+}
+export interface MemberLift {
+  
+
+  id: string;
+
+  member_id: string;
+
+  lift_number: number;
+
+  lifted_month_number: number;
+
+  lift_amount: number;
+
+  new_installment_amount: number | null;
+
+  paid_date: string | null;
+
+  notes: string | null;
+
+  created_at: string;
+}
+
+export interface MemberLiftInput {
+  
+
+  member_id: string;
+
+  lift_number: number;
+
+  lifted_month_number: number;
+
+  lift_amount: number;
+
+  new_installment_amount: number | null;
+
+  paid_date?: string | null;
+
+  notes?: string | null;
 }

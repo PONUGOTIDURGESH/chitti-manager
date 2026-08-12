@@ -3,7 +3,12 @@ import { X } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { useEffect } from 'react';
 
-type ModalSize = 'sm' | 'md' | 'lg' | 'xl';
+type ModalSize =
+  | 'sm'
+  | 'md'
+  | 'lg'
+  | 'xl'
+  | 'full';
 
 export function Modal({
   open,
@@ -40,11 +45,12 @@ export function Modal({
     };
   }, [open, onClose]);
 
-  const sizes: Record<ModalSize, string> = {
+  const sizes = {
   sm: 'max-w-sm',
   md: 'max-w-md',
   lg: 'max-w-2xl',
   xl: 'max-w-[95vw] lg:max-w-[1100px]',
+  full: 'max-w-[98vw] lg:max-w-[1500px]',
 };
 
   return (
@@ -60,6 +66,8 @@ export function Modal({
             onClick={onClose}
           />
 
+          
+
           {/* Modal */}
           <motion.div
             initial={{ opacity: 0, y: 30, scale: 0.98 }}
@@ -70,20 +78,24 @@ export function Modal({
               stiffness: 360,
               damping: 32,
             }}
+            style={{
+    touchAction: 'pan-y',
+            }}
             className={`
-              relative
-              flex
-              max-h-[95vh]
-              w-full
-              flex-col
-              overflow-hidden
-              rounded-t-2xl
-              bg-white
-              shadow-2xl
-              dark:bg-slate-900
-              sm:rounded-2xl
-              ${sizes[size]}
-            `}
+    relative
+    flex
+   h-[95vh]
+    w-full
+    flex-col
+    overflow-hidden
+    rounded-t-2xl
+    bg-white
+    shadow-2xl
+    dark:bg-slate-900
+    sm:rounded-2xl
+    ${sizes[size]}
+  `}
+            
           >
             {/* Header */}
             <div className="flex shrink-0 items-center justify-between border-b border-slate-200 px-5 py-4 dark:border-slate-800">
@@ -102,9 +114,15 @@ export function Modal({
             </div>
 
             {/* Content */}
-            <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4 sm:px-6 lg:px-8">
-              {children}
-            </div>
+           <div
+  className="flex-1 overflow-y-auto overscroll-contain px-4 py-4 sm:px-6 lg:px-8"
+  style={{
+    WebkitOverflowScrolling: 'touch',
+    touchAction: 'pan-y',
+  }}
+>
+  {children}
+</div>
 
             {/* Footer */}
             {footer && (

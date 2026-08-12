@@ -1,4 +1,5 @@
-import { useMemo, useState, useRef } from 'react';
+import { useEffect, useMemo, useState, useRef } from 'react';
+
 import { motion } from 'framer-motion';
 import { ArrowLeft, Phone, Plus, Share2, FileText, Edit3, Undo2, Archive, Trash2, Clock, CheckCircle2, UserPlus, Wallet } from 'lucide-react';
 import { Avatar } from '@/components/Avatar';
@@ -9,7 +10,7 @@ import { Modal, ConfirmDialog } from '@/components/Modal';
 import { EmptyState, ErrorState } from '@/components/States';
 import { computeMemberFinance, getInstallmentRows, detectDuplicatePayment, getOutstandingForInstallment, getNextUnpaidInstallmentMonth, getInstallmentMonths } from '@/lib/finance';
 import { formatMoney, formatDate, formatDateTime, todayISO, currentMonthStr } from '@/lib/format';
-import { paymentService, memberService } from '@/lib/services';
+import { memberService, paymentService, memberLiftService } from "@/lib/services";
 import { useRouter } from '@/hooks/useRouter';
 import type { useAppData } from '@/hooks/useAppData';
 import type {
@@ -19,12 +20,27 @@ import type {
   Chitti,
   ChittiSchedule,
 } from '@/types';
-import { StatementCard } from '@/components/StatementCard';
+import StatementCardV2 from "@/components/StatementCardV2";
 import { ReceiptCard } from '@/components/ReceiptCard';
 import type { InstallmentRow } from '@/lib/finance';
 interface Props { memberId: string; appData: ReturnType<typeof useAppData>; }
-
+import type { MemberLift } from "@/types";
 export function MemberDetailPage({ memberId, appData }: Props) {
+
+  const [liftMonth, setLiftMonth] = useState("");
+const [liftAmount, setLiftAmount] = useState("");
+const [newInstallmentAmount, setNewInstallmentAmount] = useState("");
+const [liftDate, setLiftDate] = useState(
+  new Date().toISOString().split("T")[0]
+
+  
+  
+);
+
+const [lifts, setLifts] = useState<MemberLift[]>([]);
+
+
+
   const { goBack, navigate } = useRouter();
   const {
   allMembers,
@@ -34,6 +50,16 @@ export function MemberDetailPage({ memberId, appData }: Props) {
   refresh,
 } = appData;
   const member = allMembers.find((m) => m.id === memberId);
+
+  useEffect(() => {
+  if (!member) return;
+
+  memberLiftService
+    .list(member.id)
+    .then(setLifts)
+    .catch(console.error);
+}, [member]);
+
   const chitti = chittis.find((c) => c.id === member?.chitti_id);
   const memberPayments = useMemo(
     () => allPayments.filter((p) => p.member_id === memberId).sort((a, b) => b.created_at.localeCompare(a.created_at)),
@@ -116,6 +142,43 @@ console.log('DEBUG ROWS', rows);
     catch (e) { alert(e instanceof Error ? e.message : 'Failed'); }
   };
 
+  const addLift = async () => {
+  if (!liftMonth || !liftAmount) return;
+
+  try {
+    const created = await memberLiftService.create({
+      member_id: member.id,
+  lift_number: lifts.length + 1,
+  lifted_month_number: Number(liftMonth),
+  lift_amount: Number(liftAmount),
+  new_installment_amount:
+  newInstallmentAmount.trim() === ""
+    ? null
+    : Number(newInstallmentAmount),
+  paid_date: liftDate,
+  notes: null,
+});
+
+    // First lift added? Mark member as lifted
+if (lifts.length === 0) {
+  await memberService.update(member.id, {
+    is_lifted: true,
+    lifted_month_number: Number(liftMonth),
+    lifted_date: liftDate,
+  });
+
+  refresh();
+}
+
+    setLifts((prev) => [...prev, created]);
+
+    setLiftMonth("");
+    setLiftAmount("");
+  } catch (e) {
+    alert(e instanceof Error ? e.message : "Failed to save lift");
+  }
+};
+
   return (
     <div className="space-y-5">
       {/* Header */}
@@ -142,7 +205,12 @@ console.log('DEBUG ROWS', rows);
       {/* Summary cards */}
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-3">
         <StatCard label="Total chitti" value={finance.totalExpected} icon={Wallet} tone="brand" />
-        <StatCard label="Monthly installment" value={Number(member.installment_amount)} icon={Clock} />
+        <StatCard
+  label="Monthly installment"
+  value={Number(member.installment_amount) * (member.units ?? 1)}
+  icon={Clock}
+  sub={`${member.units ?? 1} Chitti${(member.units ?? 1) > 1 ? 's' : ''}`}
+ />
         <StatCard label="Total paid" value={finance.totalPaid} icon={CheckCircle2} tone="success" />
         <StatCard label="Balance" value={finance.remainingBalance} icon={Wallet} tone="warning" />
         <StatCard label="Installments paid" value={`${finance.installmentsPaid}/${member.total_installments}`} icon={CheckCircle2} />
@@ -195,6 +263,106 @@ console.log('DEBUG ROWS', rows);
           <Trash2 className="h-4 w-4" /> Delete
         </button>
       </div>
+
+      <div className="rounded-2xl border border-slate-200 bg-white/5 p-5">
+  <div className="mb-4 flex items-center justify-between">
+    <div>
+      <h2 className="text-lg font-semibold text-white">Chit Lifts</h2>
+      <p className="text-sm text-slate-400">
+        Add multiple lift records for this member
+      </p>
+    </div>
+
+    <span className="rounded-full bg-slate-800 px-3 py-1 text-sm text-slate-200">
+      {lifts.length} lifts
+    </span>
+  </div>
+
+  <div className="grid gap-3 md:grid-cols-3">
+    <input
+      type="number"
+      placeholder="Month"
+      value={liftMonth}
+      onChange={(e) => setLiftMonth(e.target.value)}
+      className="rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-white outline-none"
+    />
+
+    <input
+      type="number"
+      placeholder="Lift Amount"
+      value={liftAmount}
+      onChange={(e) => setLiftAmount(e.target.value)}
+      className="rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-white outline-none"
+    />
+
+  {chitti?.lifting_payment_enabled && (
+  <input
+    type="number"
+    placeholder="Next installment amount"
+    value={newInstallmentAmount}
+    onChange={(e) => setNewInstallmentAmount(e.target.value)}
+    className="rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-white outline-none"
+  />
+)}
+
+    <input
+      type="date"
+      value={liftDate}
+      onChange={(e) => setLiftDate(e.target.value)}
+      className="rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-white outline-none"
+    />
+  </div>
+
+  <button
+    onClick={addLift}
+    className="mt-4 w-full rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white hover:bg-blue-500"
+  >
+    + Add Lift
+  </button>
+
+  <div className="mt-4 space-y-3">
+    {lifts.length === 0 ? (
+      <p className="text-sm text-slate-400">No lift records yet.</p>
+    ) : (
+      lifts.map((lift) => (
+        <div
+          key={lift.id}
+          className="flex items-center justify-between rounded-xl border border-slate-700 bg-slate-900/50 px-4 py-3"
+        >
+          <div className="flex items-center justify-between w-full">
+  <div>
+    <p className="font-medium text-white">
+      Month {lift.lifted_month_number}
+    </p>
+
+    <p className="text-sm text-slate-400">{lift.paid_date}</p>
+  </div>
+
+  <div className="flex items-center gap-3">
+    <p className="font-semibold text-white">
+      ₹{lift.lift_amount.toLocaleString("en-IN")}
+    </p>
+
+    <button
+  onClick={async () => {
+    try {
+      await memberLiftService.remove(lift.id);
+      setLifts((prev) => prev.filter((x) => x.id !== lift.id));
+    } catch (e) {
+      alert(e instanceof Error ? e.message : "Failed to delete lift");
+    }
+  }}
+  className="rounded-lg border border-red-500/30 px-2 py-1 text-xs text-red-400 hover:bg-red-500/10"
+>
+  Delete
+</button>
+  </div>
+</div>
+        </div>
+      ))
+    )}
+  </div>
+</div>
 
       {/* Payment table */}
       <section>
@@ -377,12 +545,20 @@ console.log('DEBUG ROWS', rows);
           setLiftingBusy(true);
 
           try {
-            await memberService.update(member.id, {
-              is_lifted: true,
-              lifted_date: liftedDate,
-              lifted_month_number: liftedMonthNumber,
-              lifting_note: liftingNote.trim() || null,
-            });
+            const existingLifts = await memberLiftService.list(member.id);
+
+await memberLiftService.create({
+  member_id: member.id,
+  lift_number: existingLifts.length + 1,
+  lifted_month_number: liftedMonthNumber,
+  lift_amount: selectedLiftSchedule!.lift_amount,
+   new_installment_amount:
+  newInstallmentAmount.trim() === ""
+    ? null
+    : Number(newInstallmentAmount),
+  paid_date: liftedDate,
+  notes: liftingNote.trim() || null,
+});
 
             setShowLiftModal(false);
             await refresh();
@@ -403,6 +579,78 @@ console.log('DEBUG ROWS', rows);
   }
 >
   <div className="space-y-4">
+
+    <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+  <div className="mb-4 flex items-center justify-between">
+    <div>
+      <h2 className="text-xl font-semibold text-slate-900">Chit Lifts</h2>
+      <p className="text-sm text-slate-500">
+        Add multiple lift records for this member.
+      </p>
+    </div>
+
+    <span className="rounded-full bg-slate-100 px-3 py-1 text-sm font-medium text-slate-700">
+      {lifts.length} lifts
+    </span>
+  </div>
+
+  <div className="grid gap-3 md:grid-cols-3">
+    <input
+      type="number"
+      placeholder="Month"
+      value={liftMonth}
+      onChange={(e) => setLiftMonth(e.target.value)}
+      className="rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-slate-900"
+    />
+
+    <input
+      type="number"
+      placeholder="Lift Amount"
+      value={liftAmount}
+      onChange={(e) => setLiftAmount(e.target.value)}
+      className="rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-slate-900"
+    />
+
+    <input
+      type="date"
+      value={liftDate}
+      onChange={(e) => setLiftDate(e.target.value)}
+      className="rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-slate-900"
+    />
+  </div>
+
+  <button
+    onClick={addLift}
+    className="mt-4 w-full rounded-xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white hover:bg-slate-800"
+  >
+    + Add Lift
+  </button>
+
+  <div className="mt-5 space-y-3">
+    {lifts.length === 0 ? (
+      <p className="text-sm text-slate-500">No lift records yet.</p>
+    ) : (
+      lifts.map((lift) => (
+        <div
+          key={lift.id}
+          className="flex items-center justify-between rounded-xl border border-slate-200 px-4 py-3"
+        >
+          <div>
+            <p className="font-medium text-slate-900">
+              Month {lift.lifted_month_number}
+            </p>
+
+            <p className="text-sm text-slate-500">{lift.paid_date}</p>
+          </div>
+
+          <p className="font-semibold text-slate-900">
+            ₹{lift.lift_amount.toLocaleString("en-IN")}
+          </p>
+        </div>
+      ))
+    )}
+  </div>
+</div>
 
     <div className="rounded-xl bg-brand-500/10 p-3">
       <p className="text-sm font-semibold text-slate-900 dark:text-white">
@@ -594,15 +842,16 @@ schedules={memberSchedules}
 
       {/* Statement */}
       {showStatement && (
-        <StatementModal
-          open={showStatement}
-          onClose={() => setShowStatement(false)}
-          member={member}
-          chittiName={chitti?.name ?? ''}
-          rows={rows}
-          finance={finance}
-        />
-      )}
+  <StatementModal
+    open={showStatement}
+    onClose={() => setShowStatement(false)}
+    member={member}
+    payments={memberPayments}
+    chitti={chitti!}
+    schedules={allSchedules}
+    lifts={lifts}
+  />
+)}
 
       {/* Receipt */}
       {showReceipt && (
@@ -669,6 +918,7 @@ function AddPaymentModal({
   const [reference, setReference] = useState(editing?.reference_number ?? '');
   const [note, setNote] = useState(editing?.note ?? '');
   const [busy, setBusy] = useState(false);
+  
   const [err, setErr] = useState<string | null>(null);
   const [dup, setDup] = useState<Payment | null>(null);
   const [overpay, setOverpay] = useState(false);
@@ -878,14 +1128,31 @@ function AddPaymentModal({
 
 // ---------- Statement modal ----------
 function StatementModal({
-  open, onClose, member, chittiName, rows, finance,
+  open,
+  onClose,
+  member,
+  payments,
+  chitti,
+  schedules,
+  lifts,
 }: {
-  open: boolean; onClose: () => void; member: Member; chittiName: string;
-  rows: ReturnType<typeof getInstallmentRows>; finance: ReturnType<typeof computeMemberFinance>;
+  open: boolean;
+onClose: () => void;
+member: Member;
+payments: Payment[];
+chitti: Chitti;
+schedules: ChittiSchedule[];
+lifts: MemberLift[];
 }) {
   return (
     <Modal open={open} onClose={onClose} title="Member statement" size="lg">
-      <StatementCard member={member} chittiName={chittiName} rows={rows} finance={finance} />
+      <StatementCardV2
+  member={member}
+  payments={payments}
+  chitti={chitti}
+  schedules={schedules}
+  lifts={lifts}
+/>
     </Modal>
   );
 }

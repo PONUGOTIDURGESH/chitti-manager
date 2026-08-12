@@ -3,6 +3,7 @@ import type {
   Payment,
   Chitti,
   ChittiSchedule,
+  MemberLift
 } from '@/types';
 
 export type MemberStatus =
@@ -157,7 +158,8 @@ export function getInstallmentRows(
   member: Member,
   payments: Payment[],
   chitti?: Chitti,
-  schedules: ChittiSchedule[] = []
+  schedules: ChittiSchedule[] = [],
+  lifts: MemberLift[] = []
 ): InstallmentRow[] {
   const months = getInstallmentMonths(member);
 
@@ -179,12 +181,18 @@ export function getInstallmentRows(
     (s) => s.month_number === index + 1
   );
 
-  const amountDue = getScheduledInstallmentAmount(
+  const applicableLift = lifts
+  .filter((lift) => index + 1 >= lift.lifted_month_number)
+  .sort((a, b) => b.lifted_month_number - a.lifted_month_number)[0];
+
+const amountDue =
+  applicableLift?.new_installment_amount ??
+  getScheduledInstallmentAmount(
     member,
     chitti,
     schedule,
     month
-  );
+  ) * (member.units ?? 1);
 
   const liftAmount = schedule
     ? Number(schedule.lift_amount)
@@ -224,6 +232,8 @@ export function getInstallmentRows(
     dueDate: schedule?.draw_date
   ? schedule.draw_date
   : getDueDateForMonth(month, member.due_day),
+
+  
 
     liftAmount: round2(liftAmount),
     amountDue: round2(amountDue),
@@ -487,12 +497,12 @@ export function getOutstandingForInstallment(
   );
 
   const amountDue =
-    getScheduledInstallmentAmount(
-      member,
-      chitti,
-      schedule,
-      installmentMonth
-    );
+  getScheduledInstallmentAmount(
+    member,
+    chitti,
+    schedule,
+    installmentMonth
+  ) * (member.units ?? 1);
 
 
   const paid = round2(

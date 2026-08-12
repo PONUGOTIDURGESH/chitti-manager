@@ -846,6 +846,12 @@ function AddMemberModal({
   ] = useState('');
 
   const [
+  units,
+  setUnits,
+] = useState(1);
+
+
+  const [
     busy,
     setBusy,
   ] = useState(false);
@@ -898,11 +904,9 @@ function AddMemberModal({
    */
 
   const totalAmount =
-    firstSchedule
-      ? Number(
-          firstSchedule.chit_value
-        )
-      : 0;
+  firstSchedule
+    ? Number(firstSchedule.chit_value)
+    : 0;
 
   /*
    * Member's stored installment_amount is used
@@ -913,11 +917,11 @@ function AddMemberModal({
    */
 
   const installmentAmount =
-    firstSchedule
-      ? Number(
-          firstSchedule.before_lifting_amount
-        )
-      : 0;
+  firstSchedule
+    ? Number(
+        firstSchedule.before_lifting_amount
+      ) 
+    : 0;
 
   /*
    * Schedule row count = number of installments.
@@ -1085,6 +1089,8 @@ function AddMemberModal({
         notes:
           notes.trim() ||
           null,
+
+          units: units,
       });
 
       // RESET
@@ -1093,6 +1099,8 @@ function AddMemberModal({
       setMobile('');
 
       setNotes('');
+
+      setUnits(1);
 
       setErr(null);
 
@@ -1245,6 +1253,23 @@ function AddMemberModal({
               )}
             </select>
           </div>
+          <div>
+  <label className="label">
+    Number of Chittis
+  </label>
+
+  <input
+    type="number"
+    min={1}
+    className="input"
+    value={units}
+    onChange={(e) =>
+      setUnits(
+        Math.max(1, Number(e.target.value))
+      )
+    }
+  />
+</div>
         </div>
 
         {/* =========================================== */}

@@ -1896,8 +1896,8 @@ const finance = computeChittiFinance(
               <div
                 className={`grid grid-cols-1 gap-3 ${
                   liftingPaymentEnabled
-                    ? 'lg:grid-cols-4'
-                    : 'lg:grid-cols-3'
+                    ? 'grid-cols-1 md:grid-cols-2 xl:grid-cols-4'
+                    : 'grid-cols-1 md:grid-cols-2 xl:grid-cols-3'
                 }`}
               >
                 <div>
@@ -2040,9 +2040,9 @@ const finance = computeChittiFinance(
               </div>
             </div>
 
-            <div className="max-h-[420px] overflow-auto rounded-xl border border-slate-200 dark:border-slate-700">
-              <table className="w-full min-w-[900px] text-sm">
-                <thead className="sticky top-0 z-10 bg-slate-100 dark:bg-slate-800">
+            <div className="max-h-[55vh] overflow-x-auto overflow-y-auto rounded-xl border border-slate-200 dark:border-slate-700">
+              <table className="w-full min-w-[820px] md:min-w-[900px] text-sm">
+                <thead className="z-10 bg-slate-100 dark:bg-slate-800">
                   <tr>
                     <th className="p-2 text-left">
                       Month
@@ -2133,14 +2133,14 @@ const finance = computeChittiFinance(
                           />
                         </td>
 
-                        <td className="p-2">
+                        <td className="p-2 align-top">
                           <input type="number" min="0" className="input min-w-[120px] lg:min-w-[140px]"
                             value={row.lift_amount}
                             onChange={(e) => updateScheduleRow(index, 'lift_amount', e.target.value)}
                           />
                         </td>
 
-                        <td className="p-2">
+                        <td className="p-2 align-top">
                           <input
                             type="number"
                             onWheel={(e) => e.currentTarget.blur()}
@@ -2231,7 +2231,7 @@ const finance = computeChittiFinance(
         } Schedule — ${editingChitti.name}`
       : 'Chitti Schedule'
   }
-  size="xl"
+  size="full"
 footer={
   <>
     <button
@@ -2263,7 +2263,7 @@ footer={
   </>
 }
 >
-        <div className="space-y-4">
+        <div className="space-y-6 pb-8">
           {editingChitti && (
             <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-800/40">
               <p className="font-bold text-slate-900 dark:text-white">
@@ -2388,11 +2388,11 @@ footer={
             </div>
 
             <div
-              className={`grid grid-cols-1 gap-3 ${
-                editLiftingPaymentEnabled
-                  ? 'lg:grid-cols-4'
-                  : 'lg:grid-cols-3'
-              }`}
+              className={`grid gap-3 ${
+  editLiftingPaymentEnabled
+    ? 'grid-cols-1 md:grid-cols-2 xl:grid-cols-4'
+    : 'grid-cols-1 md:grid-cols-2 xl:grid-cols-3'
+}`}
             >
               <div>
                 <label className="label">
@@ -2545,10 +2545,20 @@ footer={
               </p>
             </div>
 
-            <div className="overflow-hidden rounded-xl border border-slate-200 dark:border-slate-700">
-              <div className="max-h-[65vh] overflow-auto rounded-b-xl">
-                <table className="w-full min-w-[850px] lg:min-w-[950px]">
-                  <thead className="sticky top-0 z-10 bg-slate-100 dark:bg-slate-800">
+            <div className="rounded-xl border border-slate-200 dark:border-slate-700">
+              <div
+  className="overflow-x-auto rounded-b-xl"
+  style={{
+    WebkitOverflowScrolling: 'touch',
+    touchAction: 'pan-x pan-y',
+  }}
+>
+                <table
+  className="w-full min-w-[950px] table-auto border-separate border-spacing-0 touch-pan-x"
+  style={{ WebkitUserSelect: 'none' }}
+>
+                  <thead className="sticky top-0 z-20 bg-slate-100 dark:bg-slate-800">
+
                     <tr>
                       <th className="p-3 text-left text-xs font-semibold text-slate-500">
                         Month
@@ -2598,11 +2608,13 @@ footer={
                             }
                           </td>
 
-                          <td className="p-2">
+                          <td className="p-2 align-top">
                             <input
                               type="date"
-                              className="input min-w-[140px] lg:min-w-[160px]"
+                              onPointerDown={(e) => e.stopPropagation()}
+                              className="input min-w-[140px] touch-pan-y lg:min-w-[160px]"
                               value={
+                                
                                 row.draw_date
                               }
                               onChange={(
@@ -2640,14 +2652,14 @@ footer={
                             />
                           </td>
 
-                          <td className="p-2">
+                          <td className="p-2 align-top">
                             <input type="number" min="0" className="input min-w-[120px] lg:min-w-[140px]"
                               value={row.lift_amount}
                               onChange={(e) => updateEditScheduleRow(index, 'lift_amount', e.target.value)}
                             />
                           </td>
 
-                          <td className="p-2">
+                          <td className="p-2 align-top">
                             <input
                               type="number"
                               onWheel={(e) => e.currentTarget.blur()}

@@ -4,6 +4,7 @@ import {
   memberService,
   paymentService,
   scheduleService,
+  memberLiftService,
 } from '@/lib/services';
 
 import type {

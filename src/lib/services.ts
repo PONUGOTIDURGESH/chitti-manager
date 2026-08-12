@@ -10,6 +10,8 @@ import type {
   Settings,
   ChittiSchedule,
   ChittiScheduleInput,
+  MemberLift,
+  MemberLiftInput,
 } from '@/types';
 
 // ---------- Activity logs ----------
@@ -446,6 +448,45 @@ export const paymentService = {
   },
 };
 
+// ---------- Member Lifts ----------
+
+export const memberLiftService = {
+  async list(memberId: string): Promise<MemberLift[]> {
+    const { data, error } = await supabase
+      .from("member_lifts")
+      .select("*")
+      .eq("member_id", memberId)
+      .order("lift_number", { ascending: true });
+
+    if (error) throw error;
+
+    return data ?? [];
+  },
+
+  async create(input: MemberLiftInput): Promise<MemberLift> {
+
+    
+    const { data, error } = await supabase
+      .from("member_lifts")
+      .insert(input)
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    return data;
+  },
+
+  async remove(id: string) {
+  const { error } = await supabase
+    .from("member_lifts")
+    .delete()
+    .eq("id", id);
+
+  if (error) throw error;
+},
+};
+
 // ---------- Activity logs ----------
 export const activityService = {
   async list(limit = 100): Promise<ActivityLog[]> {
@@ -459,6 +500,8 @@ export const activityService = {
     return data ?? [];
   },
 };
+
+
 
 // ---------- Settings ----------
 export const settingsService = {
