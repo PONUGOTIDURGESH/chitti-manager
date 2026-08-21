@@ -5,6 +5,7 @@ import { BottomNav, MobileHeader, Sidebar } from '@/components/Navigation';
 import { DashboardPage } from '@/pages/DashboardPage';
 import { MembersPage } from '@/pages/MembersPage';
 import { PaymentsPage } from '@/pages/PaymentsPage';
+import { MonthlyCollectionPage } from '@/pages/MonthlyCollectionPage';
 import { AnalyticsPage } from '@/pages/AnalyticsPage';
 import { SettingsPage } from '@/pages/SettingsPage';
 import { ChittisPage } from '@/pages/ChittisPage';
@@ -16,6 +17,7 @@ const titles: Record<string, string> = {
   dashboard: 'Dashboard',
   members: 'Members',
   payments: 'Payments',
+  monthly_collection: 'Monthly Collection',
   analytics: 'Analytics',
   settings: 'Settings',
   chittis: 'Chittis',
@@ -42,6 +44,9 @@ export function AppShell() {
     case 'payments':
       page = <PaymentsPage appData={appData} />;
       break;
+    case 'monthly_collection':
+  page = <MonthlyCollectionPage appData={appData} />;
+  break;
     case 'analytics':
       page = <AnalyticsPage appData={appData} />;
       break;

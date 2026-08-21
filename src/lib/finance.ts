@@ -229,9 +229,10 @@ const amountDue =
     index: index + 1,
     monthLabel: getInstallmentMonthLabel(month),
 
-    dueDate: schedule?.draw_date
-  ? schedule.draw_date
-  : getDueDateForMonth(month, member.due_day),
+    dueDate: getDueDateForMonth(
+  month,
+  member.due_day
+),
 
   
 
@@ -254,14 +255,16 @@ export function computeMemberFinance(
   member: Member,
   payments: Payment[],
   chitti?: Chitti,
-  schedules: ChittiSchedule[] = []
+  schedules: ChittiSchedule[] = [],
+  lifts: MemberLift[] = []
 ): MemberFinance {
   const rows = getInstallmentRows(
-    member,
-    payments,
-    chitti,
-    schedules
-  );
+  member,
+  payments,
+  chitti,
+  schedules,
+  lifts
+);
 
   const totalExpected = round2(
     rows.reduce(
@@ -479,7 +482,8 @@ export function getOutstandingForInstallment(
   payments: Payment[],
   installmentMonth: string,
   chitti?: Chitti,
-  schedules: ChittiSchedule[] = []
+  schedules: ChittiSchedule[] = [],
+  lifts: MemberLift[] = []
 ): number {
   const months = getInstallmentMonths(member);
 
@@ -496,7 +500,19 @@ export function getOutstandingForInstallment(
       s.month_number === monthIndex + 1
   );
 
-  const amountDue =
+  const applicableLift = lifts
+  .filter(
+    (lift) =>
+      monthIndex + 1 >= lift.lifted_month_number
+  )
+  .sort(
+    (a, b) =>
+      b.lifted_month_number -
+      a.lifted_month_number
+  )[0];
+
+const amountDue =
+  applicableLift?.new_installment_amount ??
   getScheduledInstallmentAmount(
     member,
     chitti,

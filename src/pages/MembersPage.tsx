@@ -6,6 +6,12 @@ import {
   Plus,
   Users,
   UserPlus,
+  ChevronRight,
+  Phone,
+  WalletCards,
+  CheckCircle2,
+  Clock3,
+  AlertCircle,
 } from 'lucide-react';
 
 import { Avatar } from '@/components/Avatar';
@@ -29,8 +35,6 @@ import { useRouter } from '@/hooks/useRouter';
 import { useChitti } from '@/hooks/useChitti';
 import { useIsMobile } from '@/hooks/useIsMobile';
 
-import { MembersDesktop } from '@/components/members/MembersDesktop';
-import { MembersMobile } from '@/components/members/MembersMobile';
 
 import type { useAppData } from '@/hooks/useAppData';
 import type {
@@ -112,6 +116,9 @@ export function MembersPage({
 const isMobile = useIsMobile();
   const [query, setQuery] =
     useState('');
+
+    const [statementFilter, setStatementFilter] =
+  useState<'all' | 'sent' | 'unsent'>('all');
 
   const [filter, setFilter] =
     useState<Filter>('all');
@@ -235,6 +242,19 @@ const isMobile = useIsMobile();
           ).includes(q)
       );
     }
+
+    // STATEMENT FILTER
+if (statementFilter === 'sent') {
+  list = list.filter(
+    (item) => item.member.statement_sent === true
+  );
+}
+
+if (statementFilter === 'unsent') {
+  list = list.filter(
+    (item) => item.member.statement_sent !== true
+  );
+}
 
     // FILTER
     if (
@@ -415,6 +435,7 @@ const isMobile = useIsMobile();
     query,
     filter,
     sort,
+    statementFilter,
   ]);
 
   // ====================================================
@@ -444,272 +465,855 @@ const isMobile = useIsMobile();
     );
   }
 
+    // ====================================================
+  // DASHBOARD SUMMARY
+  // ====================================================
+
+  const summary = useMemo(() => {
+    const active = enriched.filter(
+      ({ member }) => !member.archived
+    );
+
+    return {
+      total: active.length,
+
+      collected: active.reduce(
+        (sum, item) =>
+          sum + Number(item.finance.totalPaid || 0),
+        0
+      ),
+
+      outstanding: active.reduce(
+        (sum, item) =>
+          sum + Number(item.finance.remainingBalance || 0),
+        0
+      ),
+
+      pending: active.filter((item) =>
+        [
+          'DUE',
+          'OVERDUE',
+          'PARTIALLY_PAID',
+          'DUE_SOON',
+        ].includes(item.finance.status)
+      ).length,
+
+      overdue: active.filter(
+        (item) =>
+          item.finance.status === 'OVERDUE'
+      ).length,
+
+      completed: active.filter(
+        (item) =>
+          item.finance.status === 'COMPLETED'
+      ).length,
+    };
+  }, [enriched]);
+
   // ====================================================
   // UI
   // ====================================================
 
- return (
-  <div className="space-y-6">
+  return (
+    <div className="space-y-4 pb-6">
 
+      {/* ================================================= */}
+      {/* PAGE HEADER */}
+      {/* ================================================= */}
 
-      {/* ============================================= */}
-      {/* SEARCH */}
-      {/* ============================================= */}
-      <div className="sticky top-0 z-20 -mx-4 mb-2 bg-slate-950/95 px-4 py-3 backdrop-blur-lg lg:hidden"></div>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
 
-      <div className="flex gap-2">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+        <div>
+          <p className="mb-1 text-xs font-semibold uppercase tracking-[0.18em] text-brand-400">
+            Chitti management
+          </p>
 
-          <input
-            className="input pl-10"
-            placeholder="Search name or phone"
-            value={query}
-            onChange={(e) =>
-              setQuery(
-                e.target.value
-              )
-            }
-          />
+          <h1 className="text-2xl font-bold tracking-tight text-white sm:text-3xl">
+            Members
+          </h1>
+
+          <p className="mt-1 text-sm text-slate-400">
+            Manage members, collections and payment status.
+          </p>
         </div>
 
         <button
-          onClick={() =>
-            setShowFilter(true)
-          }
-          className="btn-secondary px-3"
+          onClick={() => setShowAdd(true)}
+          className="inline-flex items-center justify-center gap-2 rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-brand-600/20 transition hover:bg-brand-500 active:scale-[0.98]"
         >
-          <SlidersHorizontal className="h-4 w-4" />
+          <UserPlus className="h-4 w-4" />
+          Add member
         </button>
+
       </div>
 
-      {/* ============================================= */}
-      {/* FILTER CHIPS */}
-      {/* ============================================= */}
 
-      <div className="flex gap-2 overflow-x-auto no-scrollbar">
-        {(
-          Object.keys(
-            filterLabels
-          ) as Filter[]
-        ).map((f) => (
-          <button
-            key={f}
-            onClick={() =>
-              setFilter(f)
-            }
-            className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-semibold transition ${
-              filter === f
-                ? 'bg-brand-600 text-white'
-                : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300'
-            }`}
-          >
-            {filterLabels[f]}
-          </button>
-        ))}
+      {/* ================================================= */}
+      {/* SUMMARY CARDS */}
+      {/* ================================================= */}
+
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+
+        {/* TOTAL MEMBERS */}
+
+        <div className="rounded-xl border border-slate-800/80 bg-slate-900/70 px-4 py-2.5 shadow-sm">
+          <div className="flex items-center justify-between">
+
+            <div>
+              <p className="text-xs font-medium text-slate-400">
+                Total members
+              </p>
+
+              <p className="mt-1 text-xl font-bold text-white">
+                {summary.total}
+              </p>
+            </div>
+
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-500/10 text-blue-400">
+              <Users className="h-5 w-5" />
+            </div>
+
+          </div>
+        </div>
+
+
+        {/* COLLECTED */}
+
+        <div className="rounded-xl border border-slate-800/80 bg-slate-900/70 px-4 py-2.5 shadow-sm">
+          <div className="flex items-center justify-between">
+
+            <div>
+              <p className="text-xs font-medium text-slate-400">
+                Collected
+              </p>
+
+              <p className="mt-2 text-xl font-bold text-emerald-400 sm:text-2xl">
+                {formatMoney(summary.collected)}
+              </p>
+            </div>
+
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-400">
+              <WalletCards className="h-5 w-5" />
+            </div>
+
+          </div>
+        </div>
+
+
+        {/* OUTSTANDING */}
+
+        <div className="rounded-xl border border-slate-800/80 bg-slate-900/70 px-4 py-2.5 shadow-sm">
+          <div className="flex items-center justify-between">
+
+            <div>
+              <p className="text-xs font-medium text-slate-400">
+                Outstanding
+              </p>
+
+              <p className="mt-2 text-xl font-bold text-amber-400 sm:text-2xl">
+                {formatMoney(summary.outstanding)}
+              </p>
+            </div>
+
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-500/10 text-amber-400">
+              <Clock3 className="h-5 w-5" />
+            </div>
+
+          </div>
+        </div>
+
+
+        {/* OVERDUE */}
+
+        <div className="rounded-xl border border-slate-800/80 bg-slate-900/70 px-4 py-2.5 shadow-sm">
+          <div className="flex items-center justify-between">
+
+            <div>
+              <p className="text-xs font-medium text-slate-400">
+                Overdue
+              </p>
+
+              <p className="mt-2 text-2xl font-bold text-red-400">
+                {summary.overdue}
+              </p>
+            </div>
+
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-red-500/10 text-red-400">
+              <AlertCircle className="h-5 w-5" />
+            </div>
+
+          </div>
+        </div>
+
       </div>
 
-      {/* ============================================= */}
-      {/* ADD MEMBER */}
-      {/* ============================================= */}
 
-      <button
-        className={`btn-primary ${
-  isMobile
-    ? 'fixed bottom-24 right-4 z-40 h-14 w-14 rounded-full p-0 shadow-xl'
-    : 'w-full'
-}`}
-        onClick={() =>
-          setShowAdd(true)
-        }
-      >
-        <UserPlus className="h-6 w-6" />
+      {/* ================================================= */}
+      {/* SEARCH + STATEMENT FILTER */}
+      {/* ================================================= */}
 
-{!isMobile && 'Add member'}
-      </button>
+      <div className="rounded-xl border border-slate-800/80 bg-slate-900/60 p-2.5 shadow-sm">
 
-      {/* ============================================= */}
-      {/* MEMBER LIST */}
-      {/* ============================================= */}
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
 
-      {filtered.length === 0 ? (
-        <EmptyState
-          icon={Users}
-          title={
-            members.length === 0
-              ? 'No members yet'
-              : 'No members match'
-          }
-          description={
-            members.length === 0
-              ? 'Add your first chitti member to start tracking collections.'
-              : 'Try a different search or filter.'
-          }
-          action={
-            members.length === 0 ? (
+          {/* SEARCH */}
+
+          <div className="relative flex-1">
+
+            <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
+
+            <input
+              className="w-full rounded-xl border border-slate-700/80 bg-slate-950/60 py-2.5 pl-10 pr-4 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-brand-500/70 focus:ring-2 focus:ring-brand-500/10"
+              placeholder="Search member by name or phone..."
+              value={query}
+              onChange={(e) =>
+                setQuery(e.target.value)
+              }
+            />
+
+          </div>
+
+
+          {/* STATEMENT FILTER */}
+
+          <div className="flex rounded-xl border border-slate-700/80 bg-slate-950/50 p-1">
+
+            {[
+              {
+                value: 'all',
+                label: 'All',
+              },
+              {
+                value: 'sent',
+                label: 'Sent',
+              },
+              {
+                value: 'unsent',
+                label: 'Unsent',
+              },
+            ].map((item) => (
+
               <button
-                className="btn-primary"
+                key={item.value}
                 onClick={() =>
-                  setShowAdd(
-                    true
+                  setStatementFilter(
+                    item.value as
+                      | 'all'
+                      | 'sent'
+                      | 'unsent'
                   )
                 }
+                className={`rounded-lg px-3 py-2 text-xs font-semibold transition ${
+                  statementFilter === item.value
+                    ? 'bg-brand-600 text-white shadow-sm'
+                    : 'text-slate-400 hover:bg-slate-800 hover:text-white'
+                }`}
               >
-                <Plus className="h-4 w-4" />
-
-                Add member
+                {item.label}
               </button>
-            ) : undefined
-          }
-        />
-      ) : (
-        <div className="grid gap-2.5">
-          <AnimatePresence>
-            {filtered.map(
-              ({
-                member,
-                finance,
-                schedules,
-              }) => {
-                /*
-                 * Display current/initial monthly amount.
-                 *
-                 * This is ONLY display information.
-                 * Actual calculations use the complete
-                 * schedule through computeMemberFinance.
-                 */
 
-                const firstSchedule =
-                  schedules[0];
+            ))}
 
-                const displayInstallment =
-                  firstSchedule
-                    ? Number(
-                        firstSchedule.before_lifting_amount
-                      )
-                    : Number(
-                        member.installment_amount
+          </div>
+
+
+          {/* FILTER BUTTON */}
+
+          <button
+            onClick={() => setShowFilter(true)}
+            className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-700/80 bg-slate-800/60 px-4 py-2.5 text-sm font-medium text-slate-300 transition hover:border-slate-600 hover:bg-slate-800 hover:text-white"
+          >
+            <SlidersHorizontal className="h-4 w-4" />
+            <span className="hidden sm:inline">
+              Filter & sort
+            </span>
+          </button>
+
+        </div>
+
+      </div>
+
+
+      {/* ================================================= */}
+      {/* STATUS FILTERS */}
+      {/* ================================================= */}
+
+      <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
+
+        {(
+          Object.keys(filterLabels) as Filter[]
+        ).map((f) => {
+
+          const count = enriched.filter(
+            ({ member, finance }) => {
+
+              if (f === 'archived') {
+                return member.archived;
+              }
+
+              if (member.archived) {
+                return false;
+              }
+
+              if (f === 'all') {
+                return true;
+              }
+
+              if (f === 'up_to_date') {
+                return [
+                  'UP_TO_DATE',
+                  'DUE_SOON',
+                ].includes(finance.status);
+              }
+
+              if (f === 'pending') {
+                return [
+                  'DUE',
+                  'OVERDUE',
+                  'PARTIALLY_PAID',
+                  'DUE_SOON',
+                ].includes(finance.status);
+              }
+
+              if (f === 'overdue') {
+                return finance.status === 'OVERDUE';
+              }
+
+              if (f === 'completed') {
+                return finance.status === 'COMPLETED';
+              }
+
+              return false;
+            }
+          ).length;
+
+          return (
+            <button
+              key={f}
+              onClick={() => setFilter(f)}
+              className={`flex shrink-0 items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-semibold transition ${
+                filter === f
+                  ? 'border-brand-500/30 bg-brand-600 text-white shadow-sm'
+                  : 'border-slate-800 bg-slate-900/70 text-slate-400 hover:border-slate-700 hover:text-white'
+              }`}
+            >
+              {filterLabels[f]}
+
+              <span
+                className={`rounded-full px-1.5 py-0.5 text-[10px] ${
+                  filter === f
+                    ? 'bg-white/15 text-white'
+                    : 'bg-slate-800 text-slate-500'
+                }`}
+              >
+                {count}
+              </span>
+            </button>
+          );
+        })}
+
+      </div>
+
+
+      {/* ================================================= */}
+      {/* LIST HEADER */}
+      {/* ================================================= */}
+
+      <div className="flex items-center justify-between">
+
+        <div>
+          <h2 className="text-sm font-semibold text-white">
+            Member accounts
+          </h2>
+
+          <p className="mt-0.5 text-xs text-slate-500">
+            {filtered.length} member
+            {filtered.length !== 1 ? 's' : ''} shown
+          </p>
+        </div>
+
+        <div className="hidden items-center gap-1 text-xs text-slate-500 sm:flex">
+          {summary.completed} completed
+        </div>
+
+      </div>
+
+
+      {/* ================================================= */}
+{/* MEMBER LIST */}
+{/* ================================================= */}
+
+{filtered.length === 0 ? (
+
+  <div className="rounded-xl border border-dashed border-slate-700 bg-slate-900/40 p-8">
+    <EmptyState
+      icon={Users}
+      title={
+        members.length === 0
+          ? 'No members yet'
+          : 'No members match'
+      }
+      description={
+        members.length === 0
+          ? 'Add your first chitti member to start tracking collections.'
+          : 'Try a different search or filter.'
+      }
+      action={
+        members.length === 0 ? (
+          <button
+            className="btn-primary"
+            onClick={() => setShowAdd(true)}
+          >
+            <Plus className="h-4 w-4" />
+            Add member
+          </button>
+        ) : undefined
+      }
+    />
+  </div>
+
+) : (
+
+  <div className="overflow-hidden rounded-xl border border-slate-800/80 bg-slate-900/60">
+
+    {/* ================================================= */}
+    {/* DESKTOP TABLE HEADER */}
+    {/* ================================================= */}
+
+    <div className="hidden border-b border-slate-800 bg-slate-950/40 px-4 py-2 text-[10px] font-semibold uppercase tracking-wider text-slate-500 lg:grid lg:grid-cols-[2.1fr_1.05fr_1.15fr_1.25fr_1.25fr_0.9fr_0.9fr_0.8fr] lg:items-center lg:gap-4">
+
+      <div>Member</div>
+      <div>Installment</div>
+      <div>Progress</div>
+      <div>Paid / Balance</div>
+      <div>Last Payment</div>
+      <div>Status</div>
+      <div>Statement</div>
+      <div className="text-right">Action</div>
+
+    </div>
+
+
+    {/* ================================================= */}
+    {/* MEMBERS */}
+    {/* ================================================= */}
+
+    <AnimatePresence mode="popLayout">
+
+      {filtered.map(
+        ({
+          member,
+          finance,
+          schedules,
+          lastPayment,
+        }) => {
+
+          const firstSchedule = schedules[0];
+
+          const displayInstallment =
+            firstSchedule
+              ? Number(
+                  firstSchedule.before_lifting_amount
+                )
+              : Number(
+                  member.installment_amount
+                );
+
+          const progress = Math.min(
+            100,
+            Math.max(
+              0,
+              Number(
+                finance.collectionPercentage || 0
+              )
+            )
+          );
+
+          return (
+
+            <motion.div
+              key={member.id}
+              layout
+              initial={{
+                opacity: 0,
+              }}
+              animate={{
+                opacity: 1,
+              }}
+              exit={{
+                opacity: 0,
+              }}
+              className="group border-b border-slate-800/70 last:border-b-0"
+            >
+
+              {/* ================================================= */}
+              {/* DESKTOP ROW */}
+              {/* ================================================= */}
+
+              <div className="hidden lg:grid lg:grid-cols-[2.1fr_1.05fr_1.15fr_1.25fr_1.25fr_0.9fr_0.9fr_0.8fr] lg:items-center lg:gap-4 px-4 py-2.5 transition hover:bg-slate-800/20">
+
+                {/* MEMBER */}
+
+                <button
+                  onClick={() =>
+                    navigate({
+                      name: 'member',
+                      id: member.id,
+                    })
+                  }
+                  className="flex min-w-0 items-center gap-3 text-left"
+                >
+
+                  <Avatar
+                    name={member.full_name}
+                    photoUrl={member.photo_url}
+                    size={38}
+                  />
+
+                  <div className="min-w-0">
+
+                    <div className="truncate text-[13px] font-semibold text-slate-100">
+  {member.full_name}
+</div>
+
+                    <div className="mt-0.5 truncate text-[10px] text-slate-500">
+                      {member.mobile_number || 'No phone number'}
+                    </div>
+
+                  </div>
+
+                </button>
+
+
+                {/* INSTALLMENT */}
+
+                <div>
+
+                  <div className="text-xs font-semibold text-slate-200">
+                    {formatMoney(displayInstallment)}
+                  </div>
+
+                  <div className="mt-0.5 text-[10px] text-slate-500">
+                    / month
+                  </div>
+
+                </div>
+
+
+                {/* PROGRESS */}
+
+                <div>
+
+                  <div className="mb-1 flex items-center justify-between">
+
+                    <span className="text-[11px] font-semibold text-slate-300">
+                      {progress.toFixed(0)}%
+                    </span>
+
+                    <span className="text-[10px] text-slate-600">
+                      {finance.installmentsPaid}/
+                      {member.total_installments}
+                    </span>
+
+                  </div>
+
+                  <ProgressBar
+                    value={progress}
+                    animated={false}
+                    className="h-1.5"
+                  />
+
+                </div>
+
+
+                {/* PAID / BALANCE */}
+
+                <div className="space-y-0.5">
+
+                  <div className="text-xs font-semibold text-emerald-400">
+                    {formatMoney(
+                      finance.totalPaid
+                    )}
+                  </div>
+
+                  <div className="text-[11px] font-medium text-amber-400">
+                    {formatMoney(
+                      finance.remainingBalance
+                    )}
+                  </div>
+
+                </div>
+
+
+                {/* LAST PAYMENT */}
+
+                <div>
+
+                  <div className="truncate text-xs font-medium text-slate-300">
+                    {lastPayment?.payment_date
+                      ? lastPayment.payment_date
+                      : 'No payment yet'}
+                  </div>
+
+                </div>
+
+
+                {/* STATUS */}
+
+                <div>
+                  <StatusBadge
+                    status={finance.status}
+                    size="sm"
+                  />
+                </div>
+
+
+                {/* STATEMENT */}
+
+                <div>
+
+                  {member.statement_sent ? (
+
+                    <span className="inline-flex items-center rounded-full bg-emerald-500/10 px-2 py-1 text-[10px] font-semibold text-emerald-400">
+                      Sent
+                    </span>
+
+                  ) : (
+
+                    <span className="inline-flex items-center rounded-full bg-amber-500/10 px-2 py-1 text-[10px] font-semibold text-amber-400">
+                      Unsent
+                    </span>
+
+                  )}
+
+                </div>
+
+
+                {/* ACTION */}
+
+                <div className="flex justify-end">
+
+                  <button
+                    onClick={async () => {
+
+                      await memberService.update(
+                        member.id,
+                        {
+                          statement_sent:
+                            !member.statement_sent,
+                        }
                       );
 
-                return (
-                  <motion.button
-                    key={member.id}
-                    layout
-                    initial={{
-                      opacity: 0,
-                      y: 6,
+                      refresh();
+
                     }}
-                    animate={{
-                      opacity: 1,
-                      y: 0,
-                    }}
-                    exit={{
-                      opacity: 0,
-                    }}
+                    className="rounded-lg border border-slate-700 bg-slate-900 px-2.5 py-1.5 text-[10px] font-semibold text-slate-300 transition hover:border-slate-600 hover:bg-slate-800 hover:text-white"
+                  >
+                    {member.statement_sent
+                      ? 'Unsend'
+                      : 'Mark sent'}
+                  </button>
+
+                </div>
+
+              </div>
+
+
+              {/* ================================================= */}
+              {/* MOBILE / TABLET CARD */}
+              {/* ================================================= */}
+
+              <div className="p-3 lg:hidden">
+
+                <div className="rounded-xl border border-slate-800/80 bg-slate-950/30">
+
+                  {/* TOP */}
+
+                  <button
                     onClick={() =>
                       navigate({
                         name: 'member',
                         id: member.id,
                       })
                     }
-                    className="card card-hover p-3.5 text-left"
+                    className="flex w-full items-center gap-3 p-3 text-left"
                   >
-                    <div className="flex items-center gap-3">
 
-                      <Avatar
-                        name={
-                          member.full_name
-                        }
-                        photoUrl={
-                          member.photo_url
-                        }
-                        size={44}
-                      />
+                    <Avatar
+                      name={member.full_name}
+                      photoUrl={member.photo_url}
+                      size={40}
+                    />
 
-                      <div className="min-w-0 flex-1">
+                    <div className="min-w-0 flex-1">
 
-                        {/* NAME + STATUS */}
+                      <div className="flex items-center gap-2">
 
-                        <div className="flex items-center justify-between gap-2">
-                          <p className="truncate text-sm font-bold text-slate-900 dark:text-white">
-                            {
-                              member.full_name
-                            }
-                          </p>
+                        <h3 className="truncate text-sm font-semibold text-white">
+                          {member.full_name}
+                        </h3>
 
-                          <StatusBadge
-                            status={
-                              finance.status
-                            }
-                            size="sm"
-                          />
-                        </div>
+                        <StatusBadge
+                          status={finance.status}
+                          size="sm"
+                        />
 
-                        {/* INSTALLMENT + MOBILE */}
-
-                        <p className="text-xs text-slate-500">
-                          {formatMoney(
-                            displayInstallment
-                          )}
-                          /mo ·{' '}
-                          {member.mobile_number ||
-                            '—'}
-                        </p>
-
-                        {/* PROGRESS */}
-
-                        <div className="mt-2 flex items-center gap-2">
-                          <ProgressBar
-                            value={
-                              finance.collectionPercentage
-                            }
-                            animated={
-                              false
-                            }
-                            className="flex-1"
-                          />
-
-                          <span className="text-[11px] font-semibold text-slate-500">
-                            {
-                              finance.installmentsPaid
-                            }
-                            /
-                            {
-                              member.total_installments
-                            }
-                          </span>
-                        </div>
-
-                        {/* PAID + BALANCE */}
-
-                        <div className="mt-1.5 flex justify-between text-[11px]">
-                          <span className="text-success-600 dark:text-success-500">
-                            Paid{' '}
-                            {formatMoney(
-                              finance.totalPaid
-                            )}
-                          </span>
-
-                          <span className="text-slate-500">
-                            Balance{' '}
-                            {formatMoney(
-                              finance.remainingBalance
-                            )}
-                          </span>
-                        </div>
                       </div>
+
+                      <p className="mt-0.5 text-[11px] text-slate-500">
+                        {member.mobile_number || 'No phone number'}
+                      </p>
+
                     </div>
-                  </motion.button>
-                );
-              }
-            )}
-          </AnimatePresence>
-        </div>
+
+                    <ChevronRight className="h-4 w-4 shrink-0 text-slate-600" />
+
+                  </button>
+
+
+                  {/* PROGRESS */}
+
+                  <div className="px-3 pb-3">
+
+                    <div className="mb-1.5 flex items-center justify-between">
+
+                      <span className="text-[10px] font-medium text-slate-500">
+                        Collection progress
+                      </span>
+
+                      <span className="text-[10px] font-semibold text-slate-300">
+                        {finance.installmentsPaid}/
+                        {member.total_installments}
+                      </span>
+
+                    </div>
+
+                    <ProgressBar
+                      value={progress}
+                      animated={false}
+                      className="h-1.5"
+                    />
+
+                  </div>
+
+
+                  {/* FINANCIAL INFO */}
+
+                  <div className="grid grid-cols-3 border-t border-slate-800/70">
+
+                    <div className="p-2.5">
+
+                      <p className="text-[9px] uppercase tracking-wide text-slate-600">
+                        Installment
+                      </p>
+
+                      <p className="mt-1 text-[11px] font-semibold text-slate-300">
+                        {formatMoney(
+                          displayInstallment
+                        )}
+                      </p>
+
+                    </div>
+
+
+                    <div className="border-l border-slate-800/70 p-2.5">
+
+                      <p className="text-[9px] uppercase tracking-wide text-slate-600">
+                        Paid
+                      </p>
+
+                      <p className="mt-1 text-[11px] font-semibold text-emerald-400">
+                        {formatMoney(
+                          finance.totalPaid
+                        )}
+                      </p>
+
+                    </div>
+
+
+                    <div className="border-l border-slate-800/70 p-2.5">
+
+                      <p className="text-[9px] uppercase tracking-wide text-slate-600">
+                        Balance
+                      </p>
+
+                      <p className="mt-1 text-[11px] font-semibold text-amber-400">
+                        {formatMoney(
+                          finance.remainingBalance
+                        )}
+                      </p>
+
+                    </div>
+
+                  </div>
+
+
+                  {/* ACTION */}
+
+                  <div className="flex items-center justify-between border-t border-slate-800/70 px-3 py-2">
+
+                    {member.statement_sent ? (
+
+                      <span className="text-[10px] font-semibold text-emerald-400">
+                        Statement sent
+                      </span>
+
+                    ) : (
+
+                      <span className="text-[10px] font-semibold text-amber-400">
+                        Statement pending
+                      </span>
+
+                    )}
+
+                    <button
+                      onClick={async () => {
+
+                        await memberService.update(
+                          member.id,
+                          {
+                            statement_sent:
+                              !member.statement_sent,
+                          }
+                        );
+
+                        refresh();
+
+                      }}
+                      className="rounded-lg border border-slate-700 bg-slate-900 px-2.5 py-1.5 text-[10px] font-semibold text-slate-300 transition hover:bg-slate-800 hover:text-white"
+                    >
+                      {member.statement_sent
+                        ? 'Unsend'
+                        : 'Mark sent'}
+                    </button>
+
+                  </div>
+
+                </div>
+
+              </div>
+
+            </motion.div>
+
+          );
+        }
       )}
 
-      {/* ============================================= */}
-      {/* FILTER MODAL */}
-      {/* ============================================= */}
+    </AnimatePresence>
+
+  </div>
+
+)}
+
+      {isMobile && (
+        <button
+          onClick={() => setShowAdd(true)}
+          aria-label="Add member"
+          className="fixed bottom-6 right-5 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-brand-600 text-white shadow-xl shadow-brand-600/30 transition hover:bg-brand-500 active:scale-95"
+        >
+          <Plus className="h-6 w-6" />
+        </button>
+      )}
 
       <Modal
         open={showFilter}
@@ -768,6 +1372,7 @@ const isMobile = useIsMobile();
       {/* ADD MEMBER MODAL */}
       {/* ============================================= */}
 
+
       <AddMemberModal
         open={showAdd}
         onClose={() =>
@@ -817,6 +1422,8 @@ function AddMemberModal({
 
   onSaved: () => void;
 }) {
+
+  
   // ====================================================
   // FORM STATE
   // ====================================================
@@ -830,6 +1437,11 @@ function AddMemberModal({
     mobile,
     setMobile,
   ] = useState('');
+
+  const [
+  memberStartDate,
+  setMemberStartDate,
+] = useState('');
 
   const [
     chitti,
@@ -848,7 +1460,7 @@ function AddMemberModal({
   const [
   units,
   setUnits,
-] = useState(1);
+] = useState<number | ''>('');
 
 
   const [
@@ -888,33 +1500,13 @@ function AddMemberModal({
   const firstSchedule =
     selectedSchedules[0];
 
-  // ====================================================
-  // AUTO VALUES
-  // ====================================================
-
-  /*
-   * Chitti Value:
-   *
-   * We use Month 1 chit_value as the member's
-   * base chitti amount.
-   *
-   * Example:
-   * Month 1 = ₹3,05,000
-   * Member total_chitti_amount = ₹3,05,000
-   */
 
   const totalAmount =
   firstSchedule
     ? Number(firstSchedule.chit_value)
     : 0;
 
-  /*
-   * Member's stored installment_amount is used
-   * as a fallback / initial value.
-   *
-   * Actual finance calculations later use
-   * the complete monthly schedule.
-   */
+  
 
   const installmentAmount =
   firstSchedule
@@ -923,23 +1515,16 @@ function AddMemberModal({
       ) 
     : 0;
 
-  /*
-   * Schedule row count = number of installments.
-   */
 
   const totalInstallments =
     selectedSchedules.length;
 
-  /*
-   * First draw date becomes member start date.
-   */
+  
 
-  const startDate =
-    firstSchedule?.draw_date ??
-    '';
+  const startDate = memberStartDate;
 
   /*
-   * Due day is derived from the first draw date.
+   * Due day is derived from thMobile numbere first draw date.
    *
    * 2026-07-26 -> 26
    */
@@ -1034,12 +1619,12 @@ function AddMemberModal({
 
     // START DATE
     if (!startDate) {
-      setErr(
-        'Invalid start date in schedule'
-      );
+  setErr(
+    'Please select the member starting date'
+  );
 
-      return;
-    }
+  return;
+}
 
     // DUE DAY
     if (
@@ -1090,7 +1675,7 @@ function AddMemberModal({
           notes.trim() ||
           null,
 
-          units: units,
+          units: units === '' ? 1 : units,
       });
 
       // RESET
@@ -1098,9 +1683,11 @@ function AddMemberModal({
 
       setMobile('');
 
+      setMemberStartDate('')
+
       setNotes('');
 
-      setUnits(1);
+      setUnits('');
 
       setErr(null);
 
@@ -1198,6 +1785,21 @@ function AddMemberModal({
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
 
           <div>
+  <label className="label">
+    Member starting date
+  </label>
+
+  <input
+    type="date"
+    className="input"
+    value={memberStartDate}
+    onChange={(e) =>
+      setMemberStartDate(e.target.value)
+    }
+  />
+</div>
+
+          <div>
             <label className="label">
               Mobile number
             </label>
@@ -1254,20 +1856,25 @@ function AddMemberModal({
             </select>
           </div>
           <div>
+
+            
   <label className="label">
     Number of Chittis
   </label>
 
   <input
     type="number"
+    onWheel={(e) => e.currentTarget.blur()}
     min={1}
     className="input"
     value={units}
     onChange={(e) =>
-      setUnits(
-        Math.max(1, Number(e.target.value))
-      )
-    }
+  setUnits(
+    e.target.value === ''
+      ? ''
+      : Number(e.target.value)
+  )
+}
   />
 </div>
         </div>
@@ -1378,20 +1985,11 @@ function AddMemberModal({
             {/* START DATE */}
             {/* ======================================= */}
 
-            <div className="mt-3">
-              <label className="label">
-                Start date
-              </label>
+            <label className="label">
+  Member starting date
+</label>
 
-              <input
-                className="input cursor-not-allowed bg-slate-100 dark:bg-slate-900/50"
-                type="date"
-                value={
-                  startDate
-                }
-                readOnly
-              />
-            </div>
+
 
             {/* ======================================= */}
             {/* PAYMENT RULE */}

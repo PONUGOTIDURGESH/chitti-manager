@@ -15,12 +15,12 @@ function Card({
   value: string;
 }) {
   return (
-    <div className="rounded-lg border border-slate-200 bg-white px-2 py-2 min-w-0">
-      <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-500 leading-none whitespace-nowrap">
+    <div className="min-w-0 rounded-lg border border-slate-200 bg-white px-3 py-2">
+      <p className="text-[9px] font-bold uppercase tracking-[0.08em] text-slate-500 leading-none whitespace-nowrap">
         {title}
       </p>
 
-      <p className="mt-1 text-[16px] font-bold text-slate-900 leading-none whitespace-nowrap">
+      <p className="mt-2 text-[15px] font-bold leading-none text-slate-900 whitespace-nowrap">
         {value}
       </p>
     </div>

@@ -46,12 +46,12 @@ export default function StatementHeader({
               CHITTI PAYMENT STATEMENT
             </h1>
           </div>
-
+          
           
         </div>
       </header>
 
-      <section className="mt-0.5 grid grid-cols-2 gap-x-4 rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5">
+      <section className="mt-0 grid grid-cols-2 gap-x-4 rounded-lg border border-slate-200 bg-slate-50 px-3 py-1">
         <InfoItem
           label="Member"
           value={memberName}

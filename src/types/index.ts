@@ -65,6 +65,8 @@ export interface Member {
 
   created_at: string;
   updated_at: string;
+
+  statement_sent?: boolean;
 }
 
 export interface MemberInput {
@@ -89,6 +91,8 @@ export interface MemberInput {
   lifted_date?: string | null;
   lifted_month_number?: number | null;
   lifting_note?: string | null;
+
+  statement_sent?: boolean;
 }
 
 // ---------- Payment ----------
@@ -222,6 +226,9 @@ export interface MemberLift {
   notes: string | null;
 
   created_at: string;
+
+  statement_sent?: boolean;
+
 }
 
 export interface MemberLiftInput {
@@ -240,4 +247,7 @@ export interface MemberLiftInput {
   paid_date?: string | null;
 
   notes?: string | null;
+
+  statement_sent?: boolean;
+  
 }

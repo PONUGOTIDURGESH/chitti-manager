@@ -1,4 +1,4 @@
-import { LayoutDashboard, Users, Wallet, BarChart3, Settings, Menu, LogOut, Layers } from 'lucide-react';
+import { LayoutDashboard, Users, Wallet, BarChart3, Settings, Menu, LogOut, Layers, CircleDollarSign, } from 'lucide-react';
 import { useRouter, type Route } from '@/hooks/useRouter';
 import { useAuth } from '@/hooks/useAuth';
 import { motion } from 'framer-motion';
@@ -8,6 +8,11 @@ const navItems: { name: Route['name']; label: string; icon: typeof LayoutDashboa
   { name: 'chittis', label: 'Chittis', icon: Layers },
   { name: 'members', label: 'Members', icon: Users },
   { name: 'payments', label: 'Payments', icon: Wallet },
+  {
+    name: 'monthly_collection',
+    label: 'Monthly Collection',
+    icon: CircleDollarSign,
+  },
   { name: 'analytics', label: 'Analytics', icon: BarChart3 },
   { name: 'settings', label: 'Settings', icon: Settings },
 ];

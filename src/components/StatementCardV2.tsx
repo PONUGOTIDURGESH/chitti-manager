@@ -40,7 +40,7 @@ export default function StatementCardV2({
         schedules,
         lifts
       ),
-    [member, payments, chitti, schedules]
+    [member, payments, chitti, schedules, lifts]
   );
 
   const finance = useMemo(
@@ -60,15 +60,15 @@ export default function StatementCardV2({
   const pageScale = rows.length > 35 ? scale : 1;
 
   return (
-  <div className="flex flex-col items-center bg-slate-100 py-3">
+  <div className="flex flex-col items-center bg-slate-200/60 py-6">
     {/* A4 page */}
     <div
       ref={statementRef}
-      className="bg-white text-slate-900 shadow-sm"
+      className="bg-white text-slate-900 shadow-lg"
       style={{
         width: "210mm",
         minHeight: "297mm",
-        padding: "2.5mm",
+        padding: "6mm",
         overflow: "hidden",
         transform: `scale(${pageScale})`,
         transformOrigin: "top center",
@@ -82,7 +82,8 @@ export default function StatementCardV2({
         startDate={member.start_date}
       />
       {/* Summary */}
-      <div className="mt-2">
+
+      <div className="mt-1.5">
         <StatementSummary
           member={member}
           finance={finance}
@@ -90,7 +91,7 @@ export default function StatementCardV2({
       </div>
 
       {/* Table */}
-      <div className="mt-2">
+      <div className="mt-0">
         <StatementTable
           rows={rows}
           lifts={lifts}

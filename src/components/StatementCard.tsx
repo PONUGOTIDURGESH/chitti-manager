@@ -570,7 +570,7 @@ function TableCell({
 }) {
   return (
     <td
-      className={`h-[28px] border border-slate-200 px-1.5 py-0.5 text-[11px] ${
+      className={`h-[36px] border border-slate-200 px-1.5 py-2 text-[11px] ${
         align === 'right' ? 'text-right' : 'text-left'
       }`}
     >

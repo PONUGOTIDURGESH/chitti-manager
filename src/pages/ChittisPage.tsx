@@ -191,10 +191,7 @@ export function ChittisPage({
     setDescription,
   ] = useState('');
 
-  const [
-    startDate,
-    setStartDate,
-  ] = useState(todayISO());
+ const [startDate, setStartDate] = useState(todayISO());
 
   const [status, setStatus] =
     useState<ChittiStatus>(
@@ -325,7 +322,6 @@ const [
 
     setName('');
     setDescription('');
-    setStartDate(date);
     setStatus('active');
 
     setLiftingPaymentEnabled(
@@ -395,11 +391,8 @@ const [
               month_number:
                 index + 1,
 
-              draw_date:
-                addMonths(
-                  startDate,
-                  index
-                ),
+              draw_date: '',
+                
 
               chit_value:
                 '',
@@ -422,26 +415,7 @@ const [
   // NEW CHITTI: START DATE
   // ====================================================
 
-  const changeStartDate = (
-    value: string
-  ) => {
-    setStartDate(value);
-
-    setScheduleRows(
-      (rows) =>
-        rows.map(
-          (row, index) => ({
-            ...row,
-
-            draw_date:
-              addMonths(
-                value,
-                index
-              ),
-          })
-        )
-    );
-  };
+  
 
   // ====================================================
   // NEW CHITTI: UPDATE ROW
@@ -530,13 +504,7 @@ const [
     return;
   }
 
-    if (!startDate) {
-      setFormError(
-        'Start date is required'
-      );
-
-      return;
-    }
+    
 
     if (
       numberOfMonths < 1
@@ -1367,7 +1335,7 @@ await scheduleService.upsertBulk(
   // ====================================================
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-3.5">
       <ChittiSelector
         chittis={chittis}
         selectedId={
@@ -1428,7 +1396,7 @@ await scheduleService.upsertBulk(
           }
         />
       ) : (
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-2 2xl:grid-cols-3">
           {chittis.map(
             (
               chitti,
@@ -1472,171 +1440,219 @@ const finance = computeChittiFinance(
 
               return (
                 <motion.div
-                  key={
-                    chitti.id
-                  }
-                  initial={{
-                    opacity:
-                      0,
-                    y: 10,
-                  }}
-                  animate={{
-                    opacity:
-                      1,
-                    y: 0,
-                  }}
-                  transition={{
-                    delay:
-                      index *
-                      0.04,
-                  }}
-                  className="card p-4"
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <h3 className="truncate font-bold text-slate-900 dark:text-white">
-                        {
-                          chitti.name
-                        }
-                      </h3>
+  key={chitti.id}
+  initial={{ opacity: 0, y: 8 }}
+  animate={{ opacity: 1, y: 0 }}
+  transition={{ delay: index * 0.04 }}
+  className="group overflow-hidden rounded-2xl border border-slate-800/80 bg-slate-900/60 shadow-sm transition-all duration-200 hover:border-slate-700 hover:bg-slate-900"
+>
+  {/* HEADER */}
 
-                      <p className="mt-1 text-xs text-slate-500">
-                        Started{' '}
-                        {formatDate(
-                          chitti.start_date
-                        )}
-                      </p>
-                    </div>
+  <div className="flex items-center justify-between gap-3 px-4 py-3">
 
-                    <button
-                      type="button"
-                      className="rounded-lg p-2 text-slate-400 transition hover:bg-danger-500/10 hover:text-danger-500"
-                      onClick={() =>
-                        setConfirmDelete(
-                          chitti
-                        )
-                      }
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  </div>
+    <div className="flex min-w-0 items-center gap-3">
 
-                  {chitti.description && (
-                    <p className="mt-3 line-clamp-2 text-xs text-slate-500">
-                      {
-                        chitti.description
-                      }
-                    </p>
-                  )}
+      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-brand-500/10 text-sm font-bold text-brand-400">
+        {chitti.name
+          .split(' ')
+          .map((word) => word[0])
+          .join('')
+          .slice(0, 2)
+          .toUpperCase()}
+      </div>
 
-                  <div className="mt-4 grid grid-cols-3 gap-2">
-                    <div className="rounded-lg bg-slate-50 p-2 dark:bg-slate-800/50">
-                      <p className="text-[10px] text-slate-500">
-                        Chit Value
-                      </p>
+      <div className="min-w-0">
 
-                      <p className="mt-0.5 text-xs font-bold text-slate-800 dark:text-slate-100">
-                        {chittiValue >
-                        0
-                          ? formatMoney(
-                              chittiValue
-                            )
-                          : 'Not set'}
-                      </p>
-                    </div>
+        <div className="flex items-center gap-2">
 
-                    <div className="rounded-lg bg-slate-50 p-2 dark:bg-slate-800/50">
-                      <p className="text-[10px] text-slate-500">
-                        Members
-                      </p>
+          <h3 className="truncate text-sm font-bold text-slate-100">
+            {chitti.name}
+          </h3>
 
-                      <p className="mt-0.5 text-xs font-bold text-slate-800 dark:text-slate-100">
-                        {
-                          finance.totalMembers
-                        }
-                      </p>
-                    </div>
+          <span
+            className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold ${
+              chitti.status === 'active'
+                ? 'bg-emerald-500/10 text-emerald-400'
+                : chitti.status === 'completed'
+                  ? 'bg-blue-500/10 text-blue-400'
+                  : 'bg-slate-500/10 text-slate-400'
+            }`}
+          >
+            {chitti.status}
+          </span>
 
-                    <div className="rounded-lg bg-slate-50 p-2 dark:bg-slate-800/50">
-                      <p className="text-[10px] text-slate-500">
-                        Schedule
-                      </p>
+        </div>
 
-                      <p className="mt-0.5 text-xs font-bold text-slate-800 dark:text-slate-100">
-                        {chittiSchedules.length >
-                        0
-                          ? `${chittiSchedules.length} months`
-                          : 'Not set'}
-                      </p>
-                    </div>
-                  </div>
+        <p className="mt-0.5 text-[11px] text-slate-500">
+          Started {formatDate(chitti.start_date)}
+        </p>
 
-                  <div className="mt-3 rounded-lg bg-slate-50 p-3 dark:bg-slate-800/50">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs text-slate-500">
-                        Collected
-                      </span>
+      </div>
 
-                      <span className="text-xs font-bold text-success-600">
-                        {formatMoney(
-                          finance.totalCollected
-                        )}
-                      </span>
-                    </div>
+    </div>
 
-                    <div className="mt-1 flex items-center justify-between">
-                      <span className="text-xs text-slate-500">
-                        Balance
-                      </span>
+    <button
+      type="button"
+      className="rounded-lg p-1.5 text-slate-500 opacity-70 transition hover:bg-danger-500/10 hover:text-danger-400 group-hover:opacity-100"
+      onClick={() => setConfirmDelete(chitti)}
+      title="Delete chitti"
+    >
+      <Trash2 className="h-4 w-4" />
+    </button>
 
-                      <span className="text-xs font-semibold text-slate-700 dark:text-slate-200">
-                        {formatMoney(
-                          finance.remainingBalance
-                        )}
-                      </span>
-                    </div>
-                  </div>
+  </div>
 
-                  <div className="mt-3 flex gap-2">
-                    <button
-                      className="btn-secondary flex-1 text-xs"
-                      onClick={() => {
-                        setSelectedChittiId(
-                          chitti.id
-                        );
 
-                        navigate({
-                          name: 'members',
-                        });
-                      }}
-                    >
-                      View Members
-                    </button>
+  {/* DESCRIPTION */}
 
-                    <button
-                      className="btn-secondary flex-1 text-xs"
-                      onClick={() =>
-                        openScheduleEditor(
-                          chitti
-                        )
-                      }
-                    >
-                      <Settings2 className="h-4 w-4" />
+  {chitti.description && (
+    <div className="border-t border-slate-800/70 px-4 py-2">
 
-                      {chittiSchedules.length >
-                      0
-                        ? 'Edit Schedule'
-                        : 'Configure Schedule'}
-                    </button>
-                  </div>
+      <p className="truncate text-[11px] text-slate-500">
+        {chitti.description}
+      </p>
 
-                  {chittiSchedules.length ===
-                    0 && (
-                    <div className="mt-2 rounded-lg bg-amber-500/10 px-3 py-2 text-[11px] text-amber-700 dark:text-amber-300">
-                      Schedule not configured. Configure it before adding new members.
-                    </div>
-                  )}
-                </motion.div>
+    </div>
+  )}
+
+
+  {/* STATS */}
+
+  <div className="grid grid-cols-3 border-y border-slate-800/70">
+
+    <div className="px-4 py-3">
+
+      <p className="text-[10px] font-medium uppercase tracking-wide text-slate-500">
+        Chit Value
+      </p>
+
+      <p className="mt-1 text-sm font-bold text-slate-100">
+        {chittiValue > 0
+          ? formatMoney(chittiValue)
+          : 'Not set'}
+      </p>
+
+    </div>
+
+
+    <div className="border-l border-slate-800/70 px-4 py-3">
+
+      <p className="text-[10px] font-medium uppercase tracking-wide text-slate-500">
+        Members
+      </p>
+
+      <p className="mt-1 text-sm font-bold text-slate-100">
+        {finance.totalMembers}
+      </p>
+
+    </div>
+
+
+    <div className="border-l border-slate-800/70 px-4 py-3">
+
+      <p className="text-[10px] font-medium uppercase tracking-wide text-slate-500">
+        Schedule
+      </p>
+
+      <p className="mt-1 text-sm font-bold text-slate-100">
+        {chittiSchedules.length > 0
+          ? `${chittiSchedules.length} months`
+          : 'Not set'}
+      </p>
+
+    </div>
+
+  </div>
+
+
+  {/* FINANCIAL SUMMARY */}
+
+  <div className="flex items-center justify-between gap-4 px-4 py-3">
+
+    <div>
+
+      <p className="text-[10px] uppercase tracking-wide text-slate-500">
+        Collected
+      </p>
+
+      <p className="mt-0.5 text-sm font-bold text-emerald-400">
+        {formatMoney(finance.totalCollected)}
+      </p>
+
+    </div>
+
+
+    <div className="h-8 w-px bg-slate-800" />
+
+
+    <div className="text-right">
+
+      <p className="text-[10px] uppercase tracking-wide text-slate-500">
+        Balance
+      </p>
+
+      <p className="mt-0.5 text-sm font-bold text-amber-400">
+        {formatMoney(finance.remainingBalance)}
+      </p>
+
+    </div>
+
+  </div>
+
+
+  {/* ACTIONS */}
+
+  <div className="flex gap-2 border-t border-slate-800/70 bg-slate-950/20 px-4 py-3">
+
+    <button
+      className="btn-secondary flex-1 text-xs"
+      onClick={() => {
+
+        setSelectedChittiId(chitti.id);
+
+        navigate({
+          name: 'members',
+        });
+
+      }}
+    >
+      View Members
+    </button>
+
+
+    <button
+      className="btn-secondary flex-1 text-xs"
+      onClick={() =>
+        openScheduleEditor(chitti)
+      }
+    >
+
+      <Settings2 className="h-3.5 w-3.5" />
+
+      {chittiSchedules.length > 0
+        ? 'Edit Schedule'
+        : 'Configure Schedule'}
+
+    </button>
+
+  </div>
+
+
+  {/* WARNING */}
+
+  {chittiSchedules.length === 0 && (
+
+    <div className="border-t border-amber-500/10 bg-amber-500/5 px-4 py-2">
+
+      <p className="text-[10px] font-medium text-amber-400">
+        Schedule not configured. Configure it before adding members.
+      </p>
+
+    </div>
+
+  )}
+
+</motion.div>
               );
             }
           )}
@@ -1674,7 +1690,7 @@ const finance = computeChittiFinance(
     </button>
 
     <button
-      className="btn-primary flex-1 flex items-center justify-center gap-2"
+      className="btn-primary h-10 flex-1 flex items-center justify-center gap-2 text-sm"
       disabled={busy}
       onClick={create}
     >
@@ -1687,8 +1703,8 @@ const finance = computeChittiFinance(
   </>
 }
 >
-        <div className="space-y-5">
-          <div className="grid gap-3">
+        <div className="space-y-4 pb-6">
+          <div className="grid gap-2.5">
             <div>
               <label className="label">
                 Chitti name
@@ -1715,7 +1731,7 @@ const finance = computeChittiFinance(
               </label>
 
               <textarea
-                className="input min-h-[80px]"
+  className="input min-h-[64px]"
                 value={
                   description
                 }
@@ -1731,28 +1747,8 @@ const finance = computeChittiFinance(
               />
             </div>
 
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-              <div>
-                <label className="label">
-                  Start date
-                </label>
-
-                <input
-                  type="date"
-                  className="input"
-                  value={
-                    startDate
-                  }
-                  onChange={(
-                    e
-                  ) =>
-                    changeStartDate(
-                      e.target
-                        .value
-                    )
-                  }
-                />
-              </div>
+            <div className="grid grid-cols-2 gap-2.5">
+          
 
               <div>
                 <label className="label">
@@ -1817,7 +1813,7 @@ const finance = computeChittiFinance(
             </div>
           </div>
 
-          <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-800/40">
+          <div className="rounded-xl border border-slate-800/80 bg-slate-900/60 px-3.5 py-3">
             <div className="flex items-center justify-between gap-4">
               <div>
                 <h3 className="text-sm font-semibold text-slate-900 dark:text-white">
@@ -1850,22 +1846,22 @@ const finance = computeChittiFinance(
                 }`}
               >
                 <span
-                  className={`absolute top-1 h-5 w-5 rounded-full bg-white shadow transition-all ${
+                  className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-all ${
                     liftingPaymentEnabled
-                      ? 'left-6'
-                      : 'left-1'
+                      ? 'left-[22px]'
+: 'left-0.5'
                   }`}
                 />
               </button>
             </div>
           </div>
 
-          <div className="border-t border-slate-200 pt-4 dark:border-slate-700">
+          <div className="border-t border-slate-800/70 pt-3">
             <div className="mb-3 flex items-center gap-2">
-              <CalendarDays className="h-5 w-5 text-brand-500" />
+              <CalendarDays className="h-4 w-4 text-brand-400" />
 
               <div>
-                <h3 className="font-semibold text-slate-900 dark:text-white">
+                <h3 className="text-sm font-semibold text-white">
                   Monthly Schedule
                 </h3>
 
@@ -1882,13 +1878,13 @@ const finance = computeChittiFinance(
               </div>
             </div>
 
-            <div className="mb-4 rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-800/40">
-              <div className="mb-3">
-                <h4 className="text-sm font-semibold text-slate-900 dark:text-white">
+            <div className="mb-3 rounded-xl border border-slate-800/80 bg-slate-900/60 p-3">
+              <div className="mb-2">
+                <h4 className="text-xs font-semibold text-white">
                   Quick Fill
                 </h4>
 
-                <p className="mt-0.5 text-xs text-slate-500">
+                <p className="mt-0.5 text-[10px] text-slate-500">
                   Enter an amount once and apply it to all months.
                 </p>
               </div>
@@ -1945,7 +1941,9 @@ const finance = computeChittiFinance(
                     Lift Amount
                   </label>
                   <div className="flex gap-2">
-                    <input type="number" min="0" className="input" value={bulkLiftAmount}
+                    <input type="number"
+                    onWheel={(e) => e.currentTarget.blur()}
+                     min="0" className="input" value={bulkLiftAmount}
                       onChange={(e) => setBulkLiftAmount(e.target.value)} placeholder="Amount" />
                     <button type="button" className="btn-secondary shrink-0"
                       onClick={() => applyBulkValue('lift_amount', bulkLiftAmount)}>
@@ -2040,34 +2038,34 @@ const finance = computeChittiFinance(
               </div>
             </div>
 
-            <div className="max-h-[55vh] overflow-x-auto overflow-y-auto rounded-xl border border-slate-200 dark:border-slate-700">
-              <table className="w-full min-w-[820px] md:min-w-[900px] text-sm">
-                <thead className="z-10 bg-slate-100 dark:bg-slate-800">
+            <div className="max-h-[42vh] overflow-x-auto overflow-y-auto rounded-xl border border-slate-800/80">
+              <table className="w-full min-w-[780px] text-xs">
+                <thead className="sticky top-0 z-10 bg-slate-950">
                   <tr>
-                    <th className="p-2 text-left">
+                    <th className="px-2.5 py-2 text-left text-[10px] font-semibold uppercase tracking-wide text-slate-500">
                       Month
                     </th>
 
-                    <th className="p-2 text-left">
+                    <th className="px-2.5 py-2 text-left text-[10px] font-semibold uppercase tracking-wide text-slate-500">
                       Draw Date
                     </th>
 
-                    <th className="p-2 text-left">
+                    <th className="px-2.5 py-2 text-left text-[10px] font-semibold uppercase tracking-wide text-slate-500">
                       Chit Value
                     </th>
 
-                    <th className="p-2 text-left">
+                    <th className="px-2.5 py-2 text-left text-[10px] font-semibold uppercase tracking-wide text-slate-500">
                       Lift Amount
                     </th>
 
-                    <th className="p-2 text-left">
+                    <th className="px-2.5 py-2 text-left text-[10px] font-semibold uppercase tracking-wide text-slate-500">
                       {liftingPaymentEnabled
                         ? 'Before Lifting'
                         : 'Monthly Amount'}
                     </th>
 
                     {liftingPaymentEnabled && (
-                      <th className="p-2 text-left">
+                      <th className="px-2.5 py-2 text-left text-[10px] font-semibold uppercase tracking-wide text-slate-500">
                         After Lifting
                       </th>
                     )}
@@ -2095,7 +2093,7 @@ const finance = computeChittiFinance(
                         <td className="p-2">
                           <input
                             type="date"
-                            className="input min-w-[150px]"
+                            className="input h-8 min-w-[140px] text-xs"
                             value={
                               row.draw_date
                             }
@@ -2115,8 +2113,9 @@ const finance = computeChittiFinance(
                         <td className="p-2">
                           <input
                             type="number"
+                            onWheel={(e) => e.currentTarget.blur()}
                             min="0"
-                            className="input min-w-[120px] lg:min-w-[140px]"
+                            className="input h-8 min-w-[115px] text-xs lg:min-w-[125px]"
                             value={
                               row.chit_value
                             }
@@ -2134,7 +2133,9 @@ const finance = computeChittiFinance(
                         </td>
 
                         <td className="p-2 align-top">
-                          <input type="number" min="0" className="input min-w-[120px] lg:min-w-[140px]"
+                          <input type="number"
+                          onWheel={(e) => e.currentTarget.blur()}
+                           min="0" className="input h-8 min-w-[115px] text-xs lg:min-w-[125px]"
                             value={row.lift_amount}
                             onChange={(e) => updateScheduleRow(index, 'lift_amount', e.target.value)}
                           />
@@ -2145,7 +2146,7 @@ const finance = computeChittiFinance(
                             type="number"
                             onWheel={(e) => e.currentTarget.blur()}
                             min="0"
-                            className="input min-w-[120px] lg:min-w-[140px]"
+                            className="input h-8 min-w-[115px] text-xs lg:min-w-[125px]"
                             value={
                               row.before_lifting_amount
                             }
@@ -2168,7 +2169,7 @@ const finance = computeChittiFinance(
                               type="number"
                               onWheel={(e) => e.currentTarget.blur()}
                               min="0"
-                              className="input min-w-[120px] lg:min-w-[140px]"
+                              className="input h-8 min-w-[115px] text-xs lg:min-w-[125px]"
                               value={
                                 row.after_lifting_amount
                               }
@@ -2194,8 +2195,8 @@ const finance = computeChittiFinance(
           </div>
 
           {formError && (
-            <div className="rounded-lg bg-danger-500/10 p-3">
-              <p className="text-sm text-danger-600">
+            <div className="rounded-lg border border-red-500/15 bg-red-500/5 px-3 py-2">
+              <p className="text-xs font-medium text-red-400">
                 {
                   formError
                 }
@@ -2250,7 +2251,7 @@ footer={
     </button>
 
     <button
-      className="btn-primary flex-1 flex items-center justify-center gap-2"
+      className="btn-primary h-10 flex-1 flex items-center justify-center gap-2 text-sm"
       disabled={busy}
       onClick={saveEditedSchedule}
     >
@@ -2376,7 +2377,7 @@ footer={
 
           <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-800/40">
             <div className="mb-3">
-              <h4 className="text-sm font-semibold text-slate-900 dark:text-white">
+              <h4 className="text-xs font-semibold text-white">
                 Quick Fill
               </h4>
 
@@ -2439,7 +2440,9 @@ footer={
                   Lift Amount
                 </label>
                 <div className="flex gap-2">
-                  <input type="number" min="0" className="input" value={editBulkLiftAmount}
+                  <input type="number"
+                  onWheel={(e) => e.currentTarget.blur()}
+                   min="0" className="input" value={editBulkLiftAmount}
                     onChange={(e) => setEditBulkLiftAmount(e.target.value)} placeholder="Amount" />
                   <button type="button" className="btn-secondary shrink-0"
                     onClick={() => applyEditBulkValue('lift_amount', editBulkLiftAmount)}>
@@ -2635,7 +2638,7 @@ footer={
                               type="number"
                               onWheel={(e) => e.currentTarget.blur()}
                               min="0"
-                              className="input min-w-[120px] lg:min-w-[140px]"
+                              className="input h-8 min-w-[115px] text-xs lg:min-w-[125px]"
                               value={
                                 row.chit_value
                               }
@@ -2653,7 +2656,9 @@ footer={
                           </td>
 
                           <td className="p-2 align-top">
-                            <input type="number" min="0" className="input min-w-[120px] lg:min-w-[140px]"
+                            <input type="number"
+                            onWheel={(e) => e.currentTarget.blur()}
+                             min="0" className="input h-8 min-w-[115px] text-xs lg:min-w-[125px]"
                               value={row.lift_amount}
                               onChange={(e) => updateEditScheduleRow(index, 'lift_amount', e.target.value)}
                             />
@@ -2664,7 +2669,7 @@ footer={
                               type="number"
                               onWheel={(e) => e.currentTarget.blur()}
                               min="0"
-                              className="input min-w-[120px] lg:min-w-[140px]"
+                              className="input h-8 min-w-[115px] text-xs lg:min-w-[125px]"
                               value={
                                 row.before_lifting_amount
                               }
@@ -2687,7 +2692,7 @@ footer={
                                 type="number"
                                 onWheel={(e) => e.currentTarget.blur()}
                                 min="0"
-                                className="input min-w-[120px] lg:min-w-[140px]"
+                                className="input h-8 min-w-[115px] text-xs lg:min-w-[125px]"
                                 value={
                                   row.after_lifting_amount
                                 }

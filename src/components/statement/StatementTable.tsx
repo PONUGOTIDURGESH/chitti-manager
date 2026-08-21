@@ -16,67 +16,92 @@ export default function StatementTable({
   lifts,
 }: Props) {
   return (
-   <table className="w-full border border-slate-300 border-collapse align-middle table-fixed">
+   <table className="w-full table-fixed border-collapse border border-slate-300 align-middle text-slate-900">
+  <colgroup>
+    <col className="w-[5%]" />
+    <col className="w-[14%]" />
+    <col className="w-[16%]" />
+    <col className="w-[16%]" />
+    <col className="w-[16%]" />
+    <col className="w-[13%]" />
+    <col className="w-[8%]" />
+    <col className="w-[12%]" />
+  </colgroup>
       <thead>
-        <tr className="bg-slate-50 text-slate-950">
+  <tr className="bg-slate-100">
+    <th className="border border-slate-300 px-2 py-[6px] text-center align-middle text-[9px] font-extrabold leading-none text-slate-900">
+      #
+    </th>
 
-          <th className="w-[32px] border border-slate-300 bg-slate-50 px-2 py-[5px] text-center align-middle text-[10px] font-bold text-slate-900">#</th>
+    <th className="border border-slate-300 px-2 py-[6px] text-center align-middle text-[9px] font-extrabold leading-none text-slate-900">
+      Due Date
+    </th>
 
-<th className="w-[92px] border border-slate-300 bg-slate-50 px-2 py-[5px] text-center align-middle text-[10px] font-bold text-slate-900">Due Date</th>
+    <th className="border border-slate-300 px-2 py-[6px] text-center align-middle text-[9px] font-extrabold leading-none text-slate-900">
+      Lift Amount
+    </th>
 
-<th className="w-[102px] border border-slate-300 bg-slate-50 px-2 py-[5px] text-center align-middle text-[10px] font-bold text-slate-900">Lift Amount</th>
+    <th className="border border-slate-300 px-2 py-[6px] text-center align-middle text-[9px] font-extrabold leading-none text-slate-900">
+      Amount Due
+    </th>
 
-<th className="w-[102px] border border-slate-300 bg-slate-50 px-2 py-[5px] text-center align-middle text-[10px] font-bold text-slate-900">Amount Due</th>
+    <th className="border border-slate-300 px-2 py-[6px] text-center align-middle text-[9px] font-extrabold leading-none text-slate-900">
+      Amount Paid
+    </th>
 
-<th className="w-[102px] border border-slate-300 bg-slate-50 px-2 py-[5px] text-center align-middle text-[10px] font-bold text-slate-900">Amount Paid</th>
+    <th className="border border-slate-300 px-2 py-[6px] text-center align-middle text-[9px] font-extrabold leading-none text-slate-900">
+      Paid On
+    </th>
 
-<th className="w-[86px] border border-slate-300 bg-slate-50 px-2 py-[5px] text-center align-middle text-[10px] font-bold text-slate-900">Paid On</th>
+    <th className="border border-slate-300 px-2 py-[6px] text-center align-middle text-[9px] font-extrabold leading-none text-slate-900">
+      Mode
+    </th>
 
-<th className="w-[54px] border border-slate-300 bg-slate-50 px-2 py-[5px] text-center align-middle text-[10px] font-bold text-slate-900">Mode</th>
-
-<th className="w-[70px] border border-slate-300 bg-slate-50 px-2 py-[5px] text-center align-middle text-[10px] font-bold text-slate-900">Status</th>
-        </tr>
-      </thead>
+    <th className="border border-slate-300 px-2 py-[6px] text-center align-middle text-[9px] font-extrabold leading-none text-slate-900">
+      Status
+    </th>
+  </tr>
+</thead>
 
       <tbody>
         {rows.map((row) => (
           <React.Fragment key={row.index}>
             <tr>
-              <td className="border border-slate-300 px-1 py-[3px] text-center align-middle text-[10px] font-medium text-slate-900">{row.index}</td>
+              <td className="border border-slate-300 px-1.5 py-[6.5px] text-center align-middle text-[10px] font-semibold leading-none text-slate-900">{row.index}</td>
 
 
-              <td className="border border-slate-300 px-1 py-[3px] text-center align-middle text-[10px] font-medium text-slate-900">
+              <td className="border border-slate-300 px-1.5 py-[6.5px] text-center align-middle text-[10px] font-semibold leading-none text-slate-900">
                 {formatDate(row.dueDate)}
               </td>
 
-              <td className="border border-slate-300 px-1 py-[3px] text-center align-middle text-[10px] font-medium text-slate-900">
+              <td className="border border-slate-300 px-1.5 py-[6.5px] text-center align-middle text-[10px] font-semibold leading-none text-slate-900">
                 {formatMoney(row.liftAmount)}
               </td>
 
-              <td className="border border-slate-300 px-1 py-[3px] text-center align-middle text-[10px] font-medium text-slate-900">
+              <td className="border border-slate-300 px-1.5 py-[6.5px] text-center align-middle text-[10px] font-semibold leading-none text-slate-900">
                 {formatMoney(row.amountDue)}
               </td>
 
-              <td className="border border-slate-300 px-1 py-[3px] text-center align-middle text-[10px] font-medium text-slate-900">
+              <td className="border border-slate-300 px-1.5 py-[6.5px] text-center align-middle text-[10px] font-semibold leading-none text-slate-900">
                 {formatMoney(row.amountPaid)}
               </td>
 
-              <td className="border border-slate-300 px-1 py-[3px] text-center align-middle text-[10px] font-medium text-slate-900">
+              <td className="border border-slate-300 px-1.5 py-[6.5px] text-center align-middle text-[10px] font-semibold leading-none text-slate-900">
                 {row.paymentDate
                   ? formatDate(row.paymentDate)
                   : "—"}
               </td>
 
-              <td className="border border-slate-300 px-1 py-[3px] text-center align-middle text-[10px] font-medium text-slate-900">
+              <td className="border border-slate-300 px-1.5 py-[6.5px] text-center align-middle text-[10px] font-semibold leading-none text-slate-900">
                 {row.paymentMode ?? "—"}
               </td>
 
-              <td className="border border-slate-300 px-1 py-[3px] text-center align-middle text-[10px] font-medium text-slate-900">
+              <td className="border border-slate-300 px-1.5 py-[6.5px] text-center align-middle text-[10px] font-semibold leading-none text-slate-900">
   <span
   className={
     row.status === "PAID"
-      ? "inline-flex items-center justify-center align-middle rounded-full bg-emerald-100 px-1.5 py-[1px] text-[8px] font-semibold tracking-wide text-emerald-700"
-      : "inline-flex items-center justify-center align-middle rounded-full bg-amber-100 px-1.5 py-[1px] text-[7px] font-semibold tracking-wide text-amber-700"
+      ? "inline-flex min-w-[44px] items-center justify-center rounded-full bg-emerald-100 px-2 py-[2px] text-[8px] font-bold leading-none tracking-wide text-emerald-700"
+      : "inline-flex min-w-[52px] items-center justify-center rounded-full bg-amber-100 px-2 py-[2px] text-[8px] font-bold leading-none tracking-wide text-amber-700"
   }
 >
   {row.status}
@@ -90,7 +115,7 @@ export default function StatementTable({
     <tr key={lift.id}>
       <td
         colSpan={8}
-        className="border border-slate-300 bg-amber-50 px-3 py-1 text-center align-middle text-[9px] text-[#0F172A]"
+        className="border border-slate-300 bg-amber-50 px-3 py-[6px] text-center align-middle text-[8px] font-semibold leading-none text-[#0F172A]"
       >
         Chitti Lift Amount Paid • Lift Month {lift.lifted_month_number} •{" "}
         {formatMoney(Number(lift.lift_amount))} • {lift.paid_date}

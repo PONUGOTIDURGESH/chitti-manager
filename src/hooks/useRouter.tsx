@@ -4,6 +4,7 @@ export type Route =
   | { name: 'dashboard' }
   | { name: 'members' }
   | { name: 'payments' }
+  | { name: 'monthly_collection' }
   | { name: 'analytics' }
   | { name: 'settings' }
   | { name: 'chittis' }
@@ -25,7 +26,7 @@ export function RouterProvider({ children }: { children: ReactNode }) {
   const navigate = (r: Route) => {
     setStack((s) => {
       // reset to top-level tabs
-      if ('name' in r && ['dashboard', 'members', 'payments', 'analytics', 'settings', 'chittis'].includes(r.name)) {
+      if ('name' in r && ['dashboard', 'members', 'payments',  'monthly_collection', 'analytics', 'settings', 'chittis'].includes(r.name)) {
         return [r];
       }
       return [...s, r];

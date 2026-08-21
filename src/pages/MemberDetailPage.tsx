@@ -112,14 +112,15 @@ const finance = computeMemberFinance(
   member,
   allPayments,
   chitti,
-  memberSchedules
+  memberSchedules,
 );
 
 const rows = getInstallmentRows(
   member,
   allPayments,
   chitti,
-  memberSchedules
+  memberSchedules,
+  lifts
 );
 
 console.log('DEBUG SCHEDULES', memberSchedules);
@@ -281,6 +282,7 @@ if (lifts.length === 0) {
   <div className="grid gap-3 md:grid-cols-3">
     <input
       type="number"
+      onWheel={(e) => e.currentTarget.blur()}
       placeholder="Month"
       value={liftMonth}
       onChange={(e) => setLiftMonth(e.target.value)}
@@ -289,6 +291,7 @@ if (lifts.length === 0) {
 
     <input
       type="number"
+      onWheel={(e) => e.currentTarget.blur()}
       placeholder="Lift Amount"
       value={liftAmount}
       onChange={(e) => setLiftAmount(e.target.value)}
@@ -298,6 +301,7 @@ if (lifts.length === 0) {
   {chitti?.lifting_payment_enabled && (
   <input
     type="number"
+    onWheel={(e) => e.currentTarget.blur()}
     placeholder="Next installment amount"
     value={newInstallmentAmount}
     onChange={(e) => setNewInstallmentAmount(e.target.value)}
@@ -597,6 +601,7 @@ await memberLiftService.create({
   <div className="grid gap-3 md:grid-cols-3">
     <input
       type="number"
+      onWheel={(e) => e.currentTarget.blur()}
       placeholder="Month"
       value={liftMonth}
       onChange={(e) => setLiftMonth(e.target.value)}
@@ -605,6 +610,7 @@ await memberLiftService.create({
 
     <input
       type="number"
+      onWheel={(e) => e.currentTarget.blur()}
       placeholder="Lift Amount"
       value={liftAmount}
       onChange={(e) => setLiftAmount(e.target.value)}
@@ -795,6 +801,7 @@ await memberLiftService.create({
         rows={rows}
         chitti={chitti}
 schedules={memberSchedules}
+lifts={lifts}
         onSaved={() => { setShowAddPayment(false); refresh(); }}
       />
 
@@ -807,6 +814,7 @@ schedules={memberSchedules}
         rows={rows}
         chitti={chitti}
 schedules={memberSchedules}
+lifts={lifts}
         editing={editingPayment ?? undefined}
         onSaved={() => { setEditingPayment(null); refresh(); }}
       />
@@ -886,6 +894,7 @@ function AddPaymentModal({
   rows,
   chitti,
   schedules,
+  lifts,
   editing,
   onSaved,
 }: {
@@ -896,6 +905,7 @@ function AddPaymentModal({
   rows: InstallmentRow[];
   chitti?: Chitti;
   schedules: ChittiSchedule[];
+    lifts: MemberLift[];
   editing?: Payment;
   onSaved: () => void;
 }) {
@@ -908,7 +918,14 @@ function AddPaymentModal({
   const [installmentMonth, setInstallmentMonth] = useState(nextMonth);
 
   const getOutstanding = (month: string) =>
-    getOutstandingForInstallment(member, payments, month, chitti, schedules);
+  getOutstandingForInstallment(
+    member,
+    payments,
+    month,
+    chitti,
+    schedules,
+    lifts
+  );
 
   const [amount, setAmount] = useState(
     String(editing?.amount ?? getOutstanding(nextMonth))
