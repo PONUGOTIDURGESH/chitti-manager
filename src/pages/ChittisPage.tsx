@@ -6,6 +6,9 @@ import {
   Trash2,
   CalendarDays,
   Settings2,
+  Save,
+  X,
+  Sparkles,
 } from 'lucide-react';
 
 import { useRouter } from '@/hooks/useRouter';
@@ -1270,6 +1273,27 @@ await scheduleService.upsertBulk(
       }
     };
 
+
+    // ====================================================
+// EDIT SCHEDULE: UI SUMMARY
+// ====================================================
+
+const editFirstRow = editScheduleRows[0];
+
+const editChitValue = Number(
+  editFirstRow?.chit_value || 0
+);
+
+const editMonthlyAmount = Number(
+  editFirstRow?.before_lifting_amount || 0
+);
+
+const editFirstDrawDate =
+  editFirstRow?.draw_date || editStartDate;
+
+const editDuration =
+  editScheduleRows.length;
+
   // ====================================================
   // DELETE
   // ====================================================
@@ -2084,16 +2108,16 @@ const finance = computeChittiFinance(
                         }
                         className="border-t border-slate-200 dark:border-slate-700"
                       >
-                        <td className="p-2 font-semibold">
+                        <td className="px-3 py-2 align-middle text-sm font-semibold">
                           {
                             row.month_number
                           }
                         </td>
 
-                        <td className="p-2">
+                        <td className="px-3 py-2 align-middle">
                           <input
                             type="date"
-                            className="input h-8 min-w-[140px] text-xs"
+                            className="input h-10 w-full min-w-0 text-sm"
                             value={
                               row.draw_date
                             }
@@ -2110,12 +2134,12 @@ const finance = computeChittiFinance(
                           />
                         </td>
 
-                        <td className="p-2">
+                        <td className="px-3 py-2 align-middle">
                           <input
                             type="number"
                             onWheel={(e) => e.currentTarget.blur()}
                             min="0"
-                            className="input h-8 min-w-[115px] text-xs lg:min-w-[125px]"
+                            className="input h-10 w-full min-w-0 text-sm"
                             value={
                               row.chit_value
                             }
@@ -2132,21 +2156,21 @@ const finance = computeChittiFinance(
                           />
                         </td>
 
-                        <td className="p-2 align-top">
+                        <td className="px-3 py-2 align-middle">
                           <input type="number"
                           onWheel={(e) => e.currentTarget.blur()}
-                           min="0" className="input h-8 min-w-[115px] text-xs lg:min-w-[125px]"
+                           min="0" className="input h-10 w-full min-w-0 text-sm"
                             value={row.lift_amount}
                             onChange={(e) => updateScheduleRow(index, 'lift_amount', e.target.value)}
                           />
                         </td>
 
-                        <td className="p-2 align-top">
+                        <td className="px-3 py-2 align-middle">
                           <input
                             type="number"
                             onWheel={(e) => e.currentTarget.blur()}
                             min="0"
-                            className="input h-8 min-w-[115px] text-xs lg:min-w-[125px]"
+                            className="input h-10 w-full min-w-0 text-sm"
                             value={
                               row.before_lifting_amount
                             }
@@ -2164,12 +2188,12 @@ const finance = computeChittiFinance(
                         </td>
 
                         {liftingPaymentEnabled && (
-                          <td className="p-2">
+                          <td className="px-3 py-2 align-middle">
                             <input
                               type="number"
                               onWheel={(e) => e.currentTarget.blur()}
                               min="0"
-                              className="input h-8 min-w-[115px] text-xs lg:min-w-[125px]"
+                              className="input h-10 w-full min-w-0 text-sm"
                               value={
                                 row.after_lifting_amount
                               }
@@ -2557,9 +2581,41 @@ footer={
   }}
 >
                 <table
-  className="w-full min-w-[950px] table-auto border-separate border-spacing-0 touch-pan-x"
+  className="w-full min-w-[1050px] table-fixed border-separate border-spacing-0 touch-pan-x"
   style={{ WebkitUserSelect: 'none' }}
 >
+  <colgroup>
+    <col className="w-[7%]" />
+    <col className="w-[20%]" />
+
+    <col
+      className={
+        editLiftingPaymentEnabled
+          ? "w-[18.25%]"
+          : "w-[24.33%]"
+      }
+    />
+
+    <col
+      className={
+        editLiftingPaymentEnabled
+          ? "w-[18.25%]"
+          : "w-[24.33%]"
+      }
+    />
+
+    <col
+      className={
+        editLiftingPaymentEnabled
+          ? "w-[18.25%]"
+          : "w-[24.33%]"
+      }
+    />
+
+    {editLiftingPaymentEnabled && (
+      <col className="w-[18.25%]" />
+    )}
+  </colgroup>
                   <thead className="sticky top-0 z-20 bg-slate-100 dark:bg-slate-800">
 
                     <tr>
@@ -2605,17 +2661,17 @@ footer={
                           }
                           className="border-t border-slate-200 dark:border-slate-700"
                         >
-                          <td className="p-2 text-sm font-bold text-slate-700 dark:text-slate-200">
+                          <td className="px-3 py-2 align-middle text-sm font-bold text-slate-700 dark:text-slate-200">
                             {
                               row.month_number
                             }
                           </td>
 
-                          <td className="p-2 align-top">
+                          <td className="px-3 py-2 align-middle">
                             <input
                               type="date"
                               onPointerDown={(e) => e.stopPropagation()}
-                              className="input min-w-[140px] touch-pan-y lg:min-w-[160px]"
+                              className="input h-10 w-full min-w-0 text-sm touch-pan-y"
                               value={
                                 
                                 row.draw_date
@@ -2633,12 +2689,12 @@ footer={
                             />
                           </td>
 
-                          <td className="p-2">
+                          <td className="px-3 py-2 align-middle">
                             <input
                               type="number"
                               onWheel={(e) => e.currentTarget.blur()}
                               min="0"
-                              className="input h-8 min-w-[115px] text-xs lg:min-w-[125px]"
+                              className="input h-10 w-full min-w-0 text-sm"
                               value={
                                 row.chit_value
                               }
@@ -2655,21 +2711,21 @@ footer={
                             />
                           </td>
 
-                          <td className="p-2 align-top">
+                          <td className="px-3 py-2 align-middle">
                             <input type="number"
                             onWheel={(e) => e.currentTarget.blur()}
-                             min="0" className="input h-8 min-w-[115px] text-xs lg:min-w-[125px]"
+                             min="0" className="input h-10 w-full min-w-0 text-sm"
                               value={row.lift_amount}
                               onChange={(e) => updateEditScheduleRow(index, 'lift_amount', e.target.value)}
                             />
                           </td>
 
-                          <td className="p-2 align-top">
+                          <td className="px-3 py-2 align-middle">
                             <input
                               type="number"
                               onWheel={(e) => e.currentTarget.blur()}
                               min="0"
-                              className="input h-8 min-w-[115px] text-xs lg:min-w-[125px]"
+                              className="input h-10 w-full min-w-0 text-sm"
                               value={
                                 row.before_lifting_amount
                               }
@@ -2687,12 +2743,12 @@ footer={
                           </td>
 
                           {editLiftingPaymentEnabled && (
-                            <td className="p-2">
+                            <td className="px-3 py-2 align-middle">
                               <input
                                 type="number"
                                 onWheel={(e) => e.currentTarget.blur()}
                                 min="0"
-                                className="input h-8 min-w-[115px] text-xs lg:min-w-[125px]"
+                                className="input h-10 w-full min-w-0 text-sm"
                                 value={
                                   row.after_lifting_amount
                                 }

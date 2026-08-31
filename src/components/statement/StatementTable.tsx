@@ -58,8 +58,8 @@ export default function StatementTable({
     </th>
 
     <th className="border border-slate-300 px-2 py-[6px] text-center align-middle text-[9px] font-extrabold leading-none text-slate-900">
-      Status
-    </th>
+  Balance
+</th>
   </tr>
 </thead>
 
@@ -97,15 +97,7 @@ export default function StatementTable({
               </td>
 
               <td className="border border-slate-300 px-1.5 py-[6.5px] text-center align-middle text-[10px] font-semibold leading-none text-slate-900">
-  <span
-  className={
-    row.status === "PAID"
-      ? "inline-flex min-w-[44px] items-center justify-center rounded-full bg-emerald-100 px-2 py-[2px] text-[8px] font-bold leading-none tracking-wide text-emerald-700"
-      : "inline-flex min-w-[52px] items-center justify-center rounded-full bg-amber-100 px-2 py-[2px] text-[8px] font-bold leading-none tracking-wide text-amber-700"
-  }
->
-  {row.status}
-</span>
+  {formatMoney(Math.max(0, row.amountDue - row.amountPaid))}
 </td>
             </tr>
 

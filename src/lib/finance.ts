@@ -110,9 +110,7 @@ export function getDueDateForMonth(
   const lastDay = new Date(y, m, 0).getDate();
   const day = Math.min(dueDay, lastDay);
 
-  const d = new Date(y, m - 1, day);
-
-  return d.toISOString().slice(0, 10);
+  return `${y}-${String(m).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
 }
 
 export function getScheduledInstallmentAmount(
