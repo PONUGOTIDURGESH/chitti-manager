@@ -1,9 +1,10 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Search,
   SlidersHorizontal,
   Plus,
+   Pencil,
   Users,
   UserPlus,
   ChevronRight,
@@ -39,6 +40,7 @@ import { useIsMobile } from '@/hooks/useIsMobile';
 import type { useAppData } from '@/hooks/useAppData';
 import type {
   ChittiSchedule,
+  Member,
 } from '@/types';
 
 // ======================================================
@@ -135,6 +137,10 @@ const isMobile = useIsMobile();
     showAdd,
     setShowAdd,
   ] = useState(false);
+  const [editingMember, setEditingMember] =
+  useState<Member | null>(null);
+
+  
 
   // ====================================================
   // ENRICH MEMBERS WITH SCHEDULE-AWARE FINANCE
@@ -1091,32 +1097,38 @@ if (statementFilter === 'unsent') {
 
                 {/* ACTION */}
 
-                <div className="flex justify-end">
+<div className="flex justify-end gap-2">
 
-                  <button
-                    onClick={async () => {
+  {/* EDIT MEMBER */}
+  <button
+    onClick={() => setEditingMember(member)}
+    className="inline-flex items-center gap-1.5 rounded-lg border border-slate-700 bg-slate-900 px-2.5 py-1.5 text-[10px] font-semibold text-slate-300 transition hover:border-slate-600 hover:bg-slate-800 hover:text-white"
+  >
+    <Pencil className="h-3 w-3" />
+    Edit
+  </button>
 
-                      await memberService.update(
-                        member.id,
-                        {
-                          statement_sent:
-                            !member.statement_sent,
-                        }
-                      );
+  {/* STATEMENT */}
+  <button
+    onClick={async () => {
+      await memberService.update(
+        member.id,
+        {
+          statement_sent:
+            !member.statement_sent,
+        }
+      );
 
-                      refresh();
-
-                    }}
-                    className="rounded-lg border border-slate-700 bg-slate-900 px-2.5 py-1.5 text-[10px] font-semibold text-slate-300 transition hover:border-slate-600 hover:bg-slate-800 hover:text-white"
-                  >
-                    {member.statement_sent
-                      ? 'Unsend'
-                      : 'Mark sent'}
-                  </button>
-
-                </div>
-
-              </div>
+      refresh();
+    }}
+    className="rounded-lg border border-slate-700 bg-slate-900 px-2.5 py-1.5 text-[10px] font-semibold text-slate-300 transition hover:border-slate-600 hover:bg-slate-800 hover:text-white"
+  >
+    {member.statement_sent
+      ? 'Unsend'
+      : 'Mark sent'}
+  </button>
+</div>
+</div>
 
 
               {/* ================================================= */}
@@ -1251,6 +1263,15 @@ if (statementFilter === 'unsent') {
                   {/* ACTION */}
 
                   <div className="flex items-center justify-between border-t border-slate-800/70 px-3 py-2">
+
+                  <button
+  type="button"
+  onClick={() => setEditingMember(member)}
+  className="inline-flex items-center gap-1.5 rounded-lg border border-slate-700 bg-slate-900 px-2.5 py-1.5 text-[10px] font-semibold text-slate-300 transition hover:border-slate-600 hover:bg-slate-800 hover:text-white"
+>
+  <Pencil className="h-3 w-3" />
+  Edit
+</button>
 
                     {member.statement_sent ? (
 
@@ -1391,6 +1412,14 @@ if (statementFilter === 'unsent') {
           refresh();
         }}
       />
+      <EditMemberModal
+  member={editingMember}
+  onClose={() => setEditingMember(null)}
+  onSaved={() => {
+    setEditingMember(null);
+    refresh();
+  }}
+/>
     </div>
   );
 }
@@ -2067,6 +2096,114 @@ function AddMemberModal({
         {/* =========================================== */}
         {/* ERROR */}
         {/* =========================================== */}
+
+        {err && (
+          <div className="rounded-lg bg-danger-500/10 p-3">
+            <p className="text-sm font-medium text-danger-600">
+              {err}
+            </p>
+          </div>
+        )}
+      </div>
+    </Modal>
+  );
+}
+function EditMemberModal({
+  member,
+  onClose,
+  onSaved,
+}: {
+  member: Member | null;
+  onClose: () => void;
+  onSaved: () => void;
+}) {
+  const [name, setName] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (member) {
+      setName(member.full_name);
+      setErr(null);
+    }
+  }, [member]);
+
+  const submit = async () => {
+    if (!member) return;
+
+    if (!name.trim()) {
+      setErr('Name is required');
+      return;
+    }
+
+    setBusy(true);
+    setErr(null);
+
+    try {
+      await memberService.update(member.id, {
+        full_name: name.trim(),
+      });
+
+      onSaved();
+    } catch (e) {
+      console.error('Failed to update member:', e);
+
+      setErr(
+        e instanceof Error
+          ? e.message
+          : 'Failed to update member'
+      );
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <Modal
+      open={!!member}
+      onClose={() => {
+        if (!busy) {
+          onClose();
+        }
+      }}
+      title="Edit member"
+      size="sm"
+      footer={
+        <>
+          <button
+            className="btn-secondary flex-1"
+            onClick={onClose}
+            disabled={busy}
+          >
+            Cancel
+          </button>
+
+          <button
+            className="btn-primary flex-1"
+            onClick={submit}
+            disabled={busy}
+          >
+            {busy ? 'Saving...' : 'Save changes'}
+          </button>
+        </>
+      }
+    >
+      <div className="space-y-4">
+        <div>
+          <label className="label">
+            Member name
+          </label>
+
+          <input
+            className="input"
+            value={name}
+            onChange={(e) => {
+              setName(e.target.value);
+              setErr(null);
+            }}
+            autoFocus
+          />
+        </div>
 
         {err && (
           <div className="rounded-lg bg-danger-500/10 p-3">

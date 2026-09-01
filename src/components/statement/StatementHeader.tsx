@@ -10,9 +10,11 @@ type Props = {
 function InfoItem({
   label,
   value,
+  valueClassName = "text-[10px] font-semibold text-slate-900",
 }: {
   label: string;
   value: string;
+  valueClassName?: string;
 }) {
   return (
     <div className="flex items-center border-b border-slate-200 py-1 last:border-0">
@@ -20,7 +22,7 @@ function InfoItem({
         {label}
       </span>
 
-      <span className="text-[10px] font-semibold text-slate-900">
+      <span className={valueClassName}>
         {value}
       </span>
     </div>
@@ -55,16 +57,19 @@ export default function StatementHeader({
         <InfoItem
           label="Member"
           value={memberName}
+          valueClassName="text-[16px] font-semibold text-slate-900"
         />
 
         <InfoItem
           label="Chitti"
           value={chittiName}
+          valueClassName="text-[14px] font-semibold text-slate-900"
         />
 
         <InfoItem
           label="Mobile Number"
           value={mobileNumber || "—"}
+          valueClassName="text-[14px] font-semibold text-slate-900"
         />
 
         <InfoItem
@@ -74,6 +79,7 @@ export default function StatementHeader({
               ? formatDate(startDate)
               : "—"
           }
+          valueClassName="text-[14px] font-semibold text-slate-900"
         />
       </section>
     </>

@@ -29,35 +29,35 @@ export default function StatementTable({
   </colgroup>
       <thead>
   <tr className="bg-slate-100">
-    <th className="border border-slate-300 px-2 py-[6px] text-center align-middle text-[9px] font-extrabold leading-none text-slate-900">
+    <th className="border border-slate-300 px-2 py-[6px] text-center align-middle text-[10px] font-extrabold leading-none text-slate-900">
       #
     </th>
 
-    <th className="border border-slate-300 px-2 py-[6px] text-center align-middle text-[9px] font-extrabold leading-none text-slate-900">
+    <th className="border border-slate-300 px-2 py-[6px] text-center align-middle text-[10px] font-extrabold leading-none text-slate-900">
       Due Date
     </th>
 
-    <th className="border border-slate-300 px-2 py-[6px] text-center align-middle text-[9px] font-extrabold leading-none text-slate-900">
+    <th className="border border-slate-300 px-2 py-[6px] text-center align-middle text-[10px] font-extrabold leading-none text-slate-900">
       Lift Amount
     </th>
 
-    <th className="border border-slate-300 px-2 py-[6px] text-center align-middle text-[9px] font-extrabold leading-none text-slate-900">
+    <th className="border border-slate-300 px-2 py-[6px] text-center align-middle text-[10px] font-extrabold leading-none text-slate-900">
       Amount Due
     </th>
 
-    <th className="border border-slate-300 px-2 py-[6px] text-center align-middle text-[9px] font-extrabold leading-none text-slate-900">
+    <th className="border border-slate-300 px-2 py-[6px] text-center align-middle text-[10px] font-extrabold leading-none text-slate-900">
       Amount Paid
     </th>
 
-    <th className="border border-slate-300 px-2 py-[6px] text-center align-middle text-[9px] font-extrabold leading-none text-slate-900">
+    <th className="border border-slate-300 px-2 py-[6px] text-center align-middle text-[10px] font-extrabold leading-none text-slate-900">
       Paid On
     </th>
 
-    <th className="border border-slate-300 px-2 py-[6px] text-center align-middle text-[9px] font-extrabold leading-none text-slate-900">
+    <th className="border border-slate-300 px-2 py-[6px] text-center align-middle text-[10px] font-extrabold leading-none text-slate-900">
       Mode
     </th>
 
-    <th className="border border-slate-300 px-2 py-[6px] text-center align-middle text-[9px] font-extrabold leading-none text-slate-900">
+    <th className="border border-slate-300 px-2 py-[6px] text-center align-middle text-[10px] font-extrabold leading-none text-slate-900">
   Balance
 </th>
   </tr>
@@ -67,36 +67,36 @@ export default function StatementTable({
         {rows.map((row) => (
           <React.Fragment key={row.index}>
             <tr>
-              <td className="border border-slate-300 px-1.5 py-[6.5px] text-center align-middle text-[10px] font-semibold leading-none text-slate-900">{row.index}</td>
+              <td className="border border-slate-300 px-1.5 py-[6.5px] text-center align-middle text-[11px] font-semibold leading-none text-slate-900">{row.index}</td>
 
 
-              <td className="border border-slate-300 px-1.5 py-[6.5px] text-center align-middle text-[10px] font-semibold leading-none text-slate-900">
+              <td className="border border-slate-300 px-1.5 py-[6.5px] text-center align-middle text-[11px] font-semibold leading-none text-slate-900">
                 {formatDate(row.dueDate)}
               </td>
 
-              <td className="border border-slate-300 px-1.5 py-[6.5px] text-center align-middle text-[10px] font-semibold leading-none text-slate-900">
+              <td className="border border-slate-300 px-1.5 py-[6.5px] text-center align-middle text-[11px] font-semibold leading-none text-slate-900">
                 {formatMoney(row.liftAmount)}
               </td>
 
-              <td className="border border-slate-300 px-1.5 py-[6.5px] text-center align-middle text-[10px] font-semibold leading-none text-slate-900">
+              <td className="border border-slate-300 px-1.5 py-[6.5px] text-center align-middle text-[11px] font-semibold leading-none text-slate-900">
                 {formatMoney(row.amountDue)}
               </td>
 
-              <td className="border border-slate-300 px-1.5 py-[6.5px] text-center align-middle text-[10px] font-semibold leading-none text-slate-900">
+              <td className="border border-slate-300 px-1.5 py-[6.5px] text-center align-middle text-[11px] font-semibold leading-none text-slate-900">
                 {formatMoney(row.amountPaid)}
               </td>
 
-              <td className="border border-slate-300 px-1.5 py-[6.5px] text-center align-middle text-[10px] font-semibold leading-none text-slate-900">
+              <td className="border border-slate-300 px-1.5 py-[6.5px] text-center align-middle text-[11px] font-semibold leading-none text-slate-900">
                 {row.paymentDate
                   ? formatDate(row.paymentDate)
                   : "—"}
               </td>
 
-              <td className="border border-slate-300 px-1.5 py-[6.5px] text-center align-middle text-[10px] font-semibold leading-none text-slate-900">
+              <td className="border border-slate-300 px-1.5 py-[6.5px] text-center align-middle text-[11px] font-semibold leading-none text-slate-900">
                 {row.paymentMode ?? "—"}
               </td>
 
-              <td className="border border-slate-300 px-1.5 py-[6.5px] text-center align-middle text-[10px] font-semibold leading-none text-slate-900">
+              <td className="border border-slate-300 px-1.5 py-[6.5px] text-center align-middle text-[11px] font-semibold leading-none text-slate-900">
   {formatMoney(Math.max(0, row.amountDue - row.amountPaid))}
 </td>
             </tr>

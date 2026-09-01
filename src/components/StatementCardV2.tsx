@@ -66,13 +66,13 @@ export default function StatementCardV2({
       ref={statementRef}
       className="bg-white text-slate-900 shadow-lg"
       style={{
-        width: "210mm",
-        minHeight: "297mm",
-        padding: "6mm",
-        overflow: "hidden",
-        transform: `scale(${pageScale})`,
-        transformOrigin: "top center",
-      }}
+  width: "210mm",
+  minHeight: "297mm",
+  padding: "6mm",
+  overflow: "visible",
+  transform: `scale(${pageScale})`,
+  transformOrigin: "top center",
+}}
     >
       {/* Header */}
       <StatementHeader

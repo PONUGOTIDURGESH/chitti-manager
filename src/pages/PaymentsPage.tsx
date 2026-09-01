@@ -8,10 +8,12 @@ import {
   TrendingUp,
   RotateCcw,
   ReceiptText,
+  Pencil,
+  Trash2,
 } from 'lucide-react';
 import { Avatar } from '@/components/Avatar';
 import { EmptyState, ErrorState, SkeletonCard } from '@/components/States';
-import { ConfirmDialog } from '@/components/Modal';
+import { Modal,ConfirmDialog } from '@/components/Modal';
 import { formatMoney, formatDate } from '@/lib/format';
 import { paymentService } from '@/lib/services';
 import { useRouter } from '@/hooks/useRouter';
@@ -25,7 +27,7 @@ export function PaymentsPage({ appData }: Props) {
   const { navigate } = useRouter();
   const [query, setQuery] = useState('');
   const [confirmReverse, setConfirmReverse] = useState<Payment | null>(null);
-
+const [editingPayment, setEditingPayment] = useState<Payment | null>(null);
   const memberById = (id: string) => members.find((m) => m.id === id);
 
   const sorted = useMemo(() => {
@@ -366,6 +368,14 @@ const reversedPayments = useMemo(
 
 
                 {/* ACTION */}
+                <button
+  type="button"
+  onClick={() => setEditingPayment(p)}
+  title="Edit payment"
+  className="mr-1.5 rounded-lg border border-slate-700 bg-slate-900 p-1.5 text-slate-500 transition hover:border-brand-500/30 hover:bg-brand-500/5 hover:text-brand-400"
+>
+  <Pencil className="h-3.5 w-3.5" />
+</button>
 
                 <div className="flex justify-end">
 
@@ -531,6 +541,131 @@ const reversedPayments = useMemo(
 
     )}
 
+{/* EDIT PAYMENT */}
+{editingPayment && (
+  <Modal
+    open={!!editingPayment}
+    onClose={() => setEditingPayment(null)}
+    title="Edit Payment"
+    footer={
+      <>
+        <button
+          type="button"
+          className="btn-secondary flex-1"
+          onClick={() => setEditingPayment(null)}
+        >
+          Cancel
+        </button>
+
+        <button
+          type="button"
+          className="btn-primary flex-1"
+          onClick={async () => {
+            if (!editingPayment) return;
+
+            try {
+              await paymentService.update(
+                editingPayment.id,
+                {
+                  amount: editingPayment.amount,
+                  payment_date: editingPayment.payment_date,
+                  payment_mode: editingPayment.payment_mode,
+                  installment_month: editingPayment.installment_month,
+                }
+              );
+
+              setEditingPayment(null);
+              refresh();
+            } catch (e) {
+              alert(
+                e instanceof Error
+                  ? e.message
+                  : 'Failed to update payment'
+              );
+            }
+          }}
+        >
+          Save Changes
+        </button>
+      </>
+    }
+  >
+    <div className="space-y-4">
+      <div>
+        <label className="mb-1 block text-sm font-medium text-slate-600 dark:text-slate-300">
+          Amount
+        </label>
+
+        <input
+          type="number"
+          min="0"
+          value={editingPayment.amount}
+          onChange={(e) =>
+            setEditingPayment({
+              ...editingPayment,
+              amount: Number(e.target.value),
+            })
+          }
+          className="input w-full"
+        />
+      </div>
+
+      <div>
+        <label className="mb-1 block text-sm font-medium text-slate-600 dark:text-slate-300">
+          Payment Date
+        </label>
+
+        <input
+          type="date"
+          value={editingPayment.payment_date}
+          onChange={(e) =>
+            setEditingPayment({
+              ...editingPayment,
+              payment_date: e.target.value,
+            })
+          }
+          className="input w-full"
+        />
+      </div>
+
+      <div>
+        <label className="mb-1 block text-sm font-medium text-slate-600 dark:text-slate-300">
+          Payment Mode
+        </label>
+
+        <input
+          type="text"
+          value={editingPayment.payment_mode}
+          onChange={(e) =>
+            setEditingPayment({
+              ...editingPayment,
+              payment_mode: e.target.value as typeof editingPayment.payment_mode,
+            })
+          }
+          className="input w-full"
+        />
+      </div>
+
+      <div>
+        <label className="mb-1 block text-sm font-medium text-slate-600 dark:text-slate-300">
+          Installment
+        </label>
+
+        <input
+          type="text"
+          value={editingPayment.installment_month ?? ''}
+          onChange={(e) =>
+            setEditingPayment({
+              ...editingPayment,
+              installment_month: e.target.value,
+            })
+          }
+          className="input w-full"
+        />
+      </div>
+    </div>
+  </Modal>
+)}
 
     {/* ================================================= */}
     {/* REVERSE CONFIRMATION */}

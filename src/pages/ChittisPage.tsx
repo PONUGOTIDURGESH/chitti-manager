@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import {
   Plus,
@@ -9,6 +9,7 @@ import {
   Save,
   X,
   Sparkles,
+  Pencil,
 } from 'lucide-react';
 
 import { useRouter } from '@/hooks/useRouter';
@@ -165,6 +166,8 @@ export function ChittisPage({
   const [showForm, setShowForm] =
     useState(false);
 
+    
+
   const [
     confirmDelete,
     setConfirmDelete,
@@ -266,6 +269,16 @@ const [
   ] = useState<Chitti | null>(
     null
   );
+
+  const [editChittiName, setEditChittiName] = useState('');
+const [editChittiDescription, setEditChittiDescription] = useState('');
+
+useEffect(() => {
+  if (editingChitti) {
+    setEditChittiName(editingChitti.name ?? '');
+    setEditChittiDescription(editingChitti.description ?? '');
+  }
+}, [editingChitti]);
 
   const [
     editLiftingPaymentEnabled,
@@ -1516,13 +1529,22 @@ const finance = computeChittiFinance(
     </div>
 
     <button
-      type="button"
-      className="rounded-lg p-1.5 text-slate-500 opacity-70 transition hover:bg-danger-500/10 hover:text-danger-400 group-hover:opacity-100"
-      onClick={() => setConfirmDelete(chitti)}
-      title="Delete chitti"
-    >
-      <Trash2 className="h-4 w-4" />
-    </button>
+  type="button"
+  onClick={() => setEditingChitti(chitti)}
+  className="grid h-8 w-8 place-items-center rounded-lg text-slate-400 opacity-70 transition hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800 dark:hover:text-white"
+  title="Edit Chitti"
+>
+  <Pencil className="h-4 w-4" />
+</button>
+
+<button
+  type="button"
+  className="rounded-lg p-1.5 text-slate-500 opacity-70 transition hover:bg-danger-500/10 hover:text-danger-500"
+  onClick={() => setConfirmDelete(chitti)}
+  title="Delete chitti"
+>
+  <Trash2 className="h-4 w-4" />
+</button>
 
   </div>
 
@@ -2785,6 +2807,78 @@ footer={
           )}
         </div>
       </Modal>
+
+      <Modal
+  open={!!editingChitti}
+  onClose={() => setEditingChitti(null)}
+  title="Edit Chitti"
+  size="sm"
+  footer={
+    <>
+      <button
+        type="button"
+        className="btn-secondary flex-1"
+        onClick={() => setEditingChitti(null)}
+      >
+        Cancel
+      </button>
+
+      <button
+        type="button"
+        className="btn-primary flex-1"
+        onClick={async () => {
+          if (!editingChitti) return;
+
+          const name = editChittiName.trim();
+
+          if (!name) return;
+
+          await chittiService.update(editingChitti.id, {
+            name,
+            description:
+              editChittiDescription.trim() || null,
+          });
+
+          setEditingChitti(null);
+          refresh();
+        }}
+      >
+        Save Changes
+      </button>
+    </>
+  }
+>
+  <div className="space-y-4">
+    <div>
+      <label className="label">
+        Chitti Name
+      </label>
+
+      <input
+        type="text"
+        className="input"
+        value={editChittiName}
+        onChange={(e) =>
+          setEditChittiName(e.target.value)
+        }
+      />
+    </div>
+
+    <div>
+      <label className="label">
+        Description
+      </label>
+
+      <textarea
+        className="input min-h-[90px] resize-none"
+        value={editChittiDescription}
+        onChange={(e) =>
+          setEditChittiDescription(e.target.value)
+        }
+      />
+    </div>
+  </div>
+</Modal>
 
       {/* ================================================= */}
       {/* DELETE CONFIRMATION */}

@@ -35,10 +35,20 @@ export function useAppData(selectedChittiId: string | null) {
       ]);
 
       const scheduleGroups = await Promise.all(
-        c.map((chitti) => scheduleService.list(chitti.id))
+  c.map(async (chitti) => {
+    try {
+      return await scheduleService.list(chitti.id);
+    } catch (error) {
+      console.error(
+        `Failed to load schedule for chitti ${chitti.id}:`,
+        error
       );
+      return [];
+    }
+  })
+);
 
-      const allSchedules = scheduleGroups.flat();
+const allSchedules = scheduleGroups.flat();
 
       setChittis(c);
       setMembers(m);
