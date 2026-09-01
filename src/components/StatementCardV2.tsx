@@ -56,15 +56,21 @@ export default function StatementCardV2({
 
   const statementRef = useRef<HTMLDivElement>(null);
 
-  const scale = Math.min(1, 35 / rows.length);
-  const pageScale = rows.length > 35 ? scale : 1;
+  const scale = Math.min(
+  1,
+  typeof window !== 'undefined'
+    ? (window.innerWidth - 32) / 794
+    : 1
+);
+
+const pageScale = scale;
 
   return (
-  <div className="flex flex-col items-center bg-slate-200/60 py-6">
+  <div className="flex w-full flex-col items-center bg-slate-200/60 py-6">
     {/* A4 page */}
     <div
       ref={statementRef}
-      className="bg-white text-slate-900 shadow-lg"
+      className="relative shrink-0 bg-white text-slate-900"
       style={{
   width: "210mm",
   minHeight: "297mm",

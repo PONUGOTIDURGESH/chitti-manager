@@ -89,8 +89,23 @@ const [liftingNote, setLiftingNote] = useState(
 const [liftingBusy, setLiftingBusy] = useState(false);
 
   if (!member) {
-    return <ErrorState message="Member not found" onRetry={goBack} />;
-  }
+  return (
+    <div className="min-h-[60vh] flex flex-col items-center justify-center gap-4 p-4">
+      <button
+        type="button"
+        onClick={goBack}
+        className="flex items-center gap-2 rounded-xl bg-slate-800 px-4 py-3 text-sm font-semibold text-white"
+      >
+        <ArrowLeft className="h-5 w-5" />
+        Back
+      </button>
+
+      <p className="text-sm text-slate-500">
+        Member details are not available.
+      </p>
+    </div>
+  );
+}
 
   const memberSchedules = allSchedules.filter(
   (schedule) => schedule.chitti_id === member.chitti_id
@@ -184,9 +199,16 @@ if (lifts.length === 0) {
     <div className="space-y-5">
       {/* Header */}
       <div className="flex items-center gap-3">
-        <button onClick={goBack} className="grid h-9 w-9 place-items-center rounded-lg bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300">
-          <ArrowLeft className="h-5 w-5" />
-        </button>
+        <button
+  type="button"
+  onClick={goBack}
+  className="sticky left-0 z-20 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-700 shadow-sm dark:bg-slate-800 dark:text-slate-200"
+  aria-label="Go back"
+  title="Back"
+>
+  <ArrowLeft className="h-5 w-5" />
+</button>
+          
         <Avatar name={member.full_name} photoUrl={member.photo_url} size={48} />
         <div className="min-w-0 flex-1">
           <h1 className="truncate text-lg font-bold text-slate-900 dark:text-white">{member.full_name}</h1>
@@ -1162,7 +1184,7 @@ schedules: ChittiSchedule[];
 lifts: MemberLift[];
 }) {
   return (
-    <Modal open={open} onClose={onClose} title="Member statement" size="lg">
+    <Modal open={open} onClose={onClose} title="Member statement" size="xl">
       <StatementCardV2
   member={member}
   payments={payments}
