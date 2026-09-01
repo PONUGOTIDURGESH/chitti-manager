@@ -6,7 +6,6 @@ import { DashboardPage } from '@/pages/DashboardPage';
 import { MembersPage } from '@/pages/MembersPage';
 import { PaymentsPage } from '@/pages/PaymentsPage';
 import { MonthlyCollectionPage } from '@/pages/MonthlyCollectionPage';
-import { AnalyticsPage } from '@/pages/AnalyticsPage';
 import { SettingsPage } from '@/pages/SettingsPage';
 import { ChittisPage } from '@/pages/ChittisPage';
 import { MemberDetailPage } from '@/pages/MemberDetailPage';
@@ -18,7 +17,6 @@ const titles: Record<string, string> = {
   members: 'Members',
   payments: 'Payments',
   monthly_collection: 'Monthly Collection',
-  analytics: 'Analytics',
   settings: 'Settings',
   chittis: 'Chittis',
   member: 'Member',
@@ -47,9 +45,6 @@ export function AppShell() {
     case 'monthly_collection':
   page = <MonthlyCollectionPage appData={appData} />;
   break;
-    case 'analytics':
-      page = <AnalyticsPage appData={appData} />;
-      break;
     case 'settings':
       page = <SettingsPage appData={appData} />;
       break;
