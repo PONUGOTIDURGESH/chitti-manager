@@ -17,51 +17,92 @@ export default function ShareButtons({
   // GENERATE A4-SIZED IMAGE
   // =========================================================
   const generateA4Image = async (): Promise<Blob | null> => {
-    if (!targetRef.current) return null;
+  if (!targetRef.current) return null;
 
-    const element = targetRef.current;
+  const original = targetRef.current;
 
-    // Render the statement at a proper desktop/A4-like width
-    const canvas = await html2canvas(element, {
+  const clone = original.cloneNode(true) as HTMLElement;
+
+  const EXPORT_WIDTH = 794;
+  const A4_WIDTH = 2480;
+  const A4_HEIGHT = 3508;
+  const MARGIN = 40;
+
+  clone.style.transform = "none";
+  clone.style.transformOrigin = "top left";
+
+  clone.style.width = `${EXPORT_WIDTH}px`;
+  clone.style.minWidth = `${EXPORT_WIDTH}px`;
+  clone.style.height = "auto";
+  clone.style.minHeight = "1123px";
+
+  clone.style.position = "absolute";
+  clone.style.left = "-10000px";
+  clone.style.top = "0";
+  clone.style.margin = "0";
+  clone.style.overflow = "visible";
+
+  document.body.appendChild(clone);
+
+  try {
+    const canvas = await html2canvas(clone, {
       scale: 3,
       useCORS: true,
       backgroundColor: "#ffffff",
-      windowWidth: 794,
-      width: 794,
+
+      width: EXPORT_WIDTH,
+      windowWidth: EXPORT_WIDTH,
+
+      height: Math.max(
+        1123,
+        clone.scrollHeight
+      ),
+
+      windowHeight: Math.max(
+        1123,
+        clone.scrollHeight
+      ),
+
+      scrollX: 0,
+      scrollY: 0,
     });
 
-    // A4 portrait ratio
-    const A4_WIDTH = 2480;
-    const A4_HEIGHT = 3508;
+    const outputCanvas =
+      document.createElement("canvas");
 
-    const outputCanvas = document.createElement("canvas");
     outputCanvas.width = A4_WIDTH;
     outputCanvas.height = A4_HEIGHT;
 
-    const ctx = outputCanvas.getContext("2d");
+    const ctx =
+      outputCanvas.getContext("2d");
 
     if (!ctx) return null;
 
-    // White A4 background
     ctx.fillStyle = "#ffffff";
-    ctx.fillRect(0, 0, A4_WIDTH, A4_HEIGHT);
 
-    // Keep some margin around the statement
-    const margin = 120;
-
-    const maxWidth = A4_WIDTH - margin * 2;
-    const maxHeight = A4_HEIGHT - margin * 2;
-
-    const scale = Math.min(
-      maxWidth / canvas.width,
-      maxHeight / canvas.height
+    ctx.fillRect(
+      0,
+      0,
+      A4_WIDTH,
+      A4_HEIGHT
     );
 
-    const drawWidth = canvas.width * scale;
-    const drawHeight = canvas.height * scale;
+    const availableWidth =
+      A4_WIDTH - MARGIN * 2;
 
-    const x = (A4_WIDTH - drawWidth) / 2;
-    const y = margin;
+    const scale =
+      availableWidth / canvas.width;
+
+    const drawWidth =
+      canvas.width * scale;
+
+    const drawHeight =
+      canvas.height * scale;
+
+    const x =
+      (A4_WIDTH - drawWidth) / 2;
+
+    const y = MARGIN;
 
     ctx.drawImage(
       canvas,
@@ -71,13 +112,19 @@ export default function ShareButtons({
       drawHeight
     );
 
-    return await new Promise<Blob | null>((resolve) => {
-      outputCanvas.toBlob(
-        (blob) => resolve(blob),
-        "image/png"
-      );
-    });
-  };
+    return await new Promise<Blob | null>(
+      (resolve) => {
+        outputCanvas.toBlob(
+          (blob) => resolve(blob),
+          "image/png",
+          1
+        );
+      }
+    );
+  } finally {
+    document.body.removeChild(clone);
+  }
+};
 
   // =========================================================
   // DOWNLOAD PDF
