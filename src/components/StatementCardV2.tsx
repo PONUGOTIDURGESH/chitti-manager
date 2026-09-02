@@ -57,8 +57,15 @@ export default function StatementCardV2({
   const statementRef = useRef<HTMLDivElement>(null);
 
 const [zoom, setZoom] = useState(1);
+const [pan, setPan] = useState({ x: 0, y: 0 });
+
+
+const lastTouch = useRef({ x: 0, y: 0 });
+
 const pinchStartDistance = useRef<number | null>(null);
 const pinchStartZoom = useRef(1);
+
+
 
 const getTouchDistance = (touches: React.TouchList) => {
   const dx = touches[0].clientX - touches[1].clientX;
@@ -72,7 +79,16 @@ const handleTouchStart = (e: React.TouchEvent) => {
     pinchStartDistance.current = getTouchDistance(e.touches);
     pinchStartZoom.current = zoom;
   }
+
+  if (e.touches.length === 1 && zoom > 1) {
+    lastTouch.current = {
+      x: e.touches[0].clientX,
+      y: e.touches[0].clientY,
+    };
+  }
 };
+
+
 
 const handleTouchMove = (e: React.TouchEvent) => {
   if (e.touches.length === 2 && pinchStartDistance.current) {
@@ -114,7 +130,7 @@ const pageScale = scale;
   onTouchMove={handleTouchMove}
   onTouchEnd={handleTouchEnd}
   style={{
-    transform: `scale(${zoom})`,
+    transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
     transformOrigin: "top center",
     touchAction: "none",
   }}
