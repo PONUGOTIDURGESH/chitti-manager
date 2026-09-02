@@ -270,6 +270,11 @@ const [
     null
   );
 
+  const [
+  scheduleEditingChitti,
+  setScheduleEditingChitti,
+] = useState<Chitti | null>(null);
+
   const [editChittiName, setEditChittiName] = useState('');
 const [editChittiDescription, setEditChittiDescription] = useState('');
 
@@ -746,7 +751,7 @@ await scheduleService.createBulk(
             b.month_number
         );
 
-    setEditingChitti(
+    setScheduleEditingChitti(
       chitti
     );
 
@@ -1070,14 +1075,23 @@ await scheduleService.createBulk(
   // SAVE EDITED SCHEDULE
   // ====================================================
 
-  const saveEditedSchedule =
-  async () => {
+  const saveEditedSchedule = async () => {
 
-    if (busy) return;
+  console.log("SAVE FUNCTION STARTED");
+  console.log("BUSY:", busy);
+  console.log("SCHEDULE EDITING CHITTI:", scheduleEditingChitti);
+  console.log("ROWS COUNT:", editScheduleRows.length);
 
-    if (!editingChitti) {
-      return;
-    }
+  if (busy) return;
+
+
+    if (!scheduleEditingChitti) {
+  console.log("SCHEDULE EDITING CHITTI IS NULL — SAVE STOPPED");
+  setEditScheduleError(
+    "Internal error: editing chitti is missing"
+  );
+  return;
+}
 
       if (
         editNumberOfMonths <
@@ -1171,7 +1185,7 @@ const after =
 
       try {
         await chittiService.update(
-  editingChitti.id,
+  scheduleEditingChitti.id,
   {
     start_date:
       editStartDate,
@@ -1195,7 +1209,7 @@ const after =
 
               return {
                 chitti_id:
-                  editingChitti.id,
+  scheduleEditingChitti.id,
 
                 month_number:
                   row.month_number,
@@ -1239,7 +1253,7 @@ await scheduleService.upsertBulk(
           allSchedules.filter(
             (schedule) =>
               schedule.chitti_id ===
-                editingChitti.id &&
+                scheduleEditingChitti.id&&
               schedule.month_number >
                 editNumberOfMonths
           );
@@ -1259,9 +1273,7 @@ await scheduleService.upsertBulk(
           false
         );
 
-        setEditingChitti(
-          null
-        );
+        setScheduleEditingChitti(null);
 
         setEditScheduleRows(
           []
@@ -2262,22 +2274,24 @@ const finance = computeChittiFinance(
     if (busy) return;
 
     setShowScheduleEditor(false);
-    setEditingChitti(null);
+    console.log("EDITING CHITTI CLEARED BY MODAL onClose");
+setScheduleEditingChitti(null);
     setEditScheduleRows([]);
     setEditScheduleError(null);
   }}
   title={
-    editingChitti
-      ? `${
-          allSchedules.some(
-            (schedule) =>
-              schedule.chitti_id === editingChitti.id
-          )
-            ? 'Edit'
-            : 'Configure'
-        } Schedule — ${editingChitti.name}`
-      : 'Chitti Schedule'
-  }
+  scheduleEditingChitti
+    ? `${
+        allSchedules.some(
+          (schedule) =>
+            schedule.chitti_id ===
+            scheduleEditingChitti.id
+        )
+          ? 'Edit'
+          : 'Configure'
+      } Schedule — ${scheduleEditingChitti.name}`
+    : 'Chitti Schedule'
+}
   size="full"
 footer={
   <>
@@ -2288,7 +2302,8 @@ footer={
         if (busy) return;
 
         setShowScheduleEditor(false);
-        setEditingChitti(null);
+        console.log("EDITING CHITTI CLEARED BY CANCEL");
+setScheduleEditingChitti(null);
         setEditScheduleRows([]);
         setEditScheduleError(null);
       }}
@@ -2297,10 +2312,16 @@ footer={
     </button>
 
     <button
-      className="btn-primary h-10 flex-1 flex items-center justify-center gap-2 text-sm"
-      disabled={busy}
-      onClick={saveEditedSchedule}
-    >
+  type="button"
+  className="btn-primary h-10 flex-1 flex items-center justify-center gap-2 text-sm"
+  disabled={busy}
+  onClick={(e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    console.log("SAVE SCHEDULE BUTTON CLICKED");
+    saveEditedSchedule();
+  }}
+>
       {busy && (
         <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
       )}
@@ -2311,13 +2332,11 @@ footer={
 }
 >
         <div className="space-y-6 pb-8">
-          {editingChitti && (
+          {scheduleEditingChitti && (
             <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-800/40">
               <p className="font-bold text-slate-900 dark:text-white">
-                {
-                  editingChitti.name
-                }
-              </p>
+  {scheduleEditingChitti.name}
+</p>
 
               <p className="mt-1 text-xs text-slate-500">
                 Started{' '}
