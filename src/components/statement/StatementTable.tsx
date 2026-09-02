@@ -29,35 +29,35 @@ export default function StatementTable({
   </colgroup>
       <thead>
   <tr className="bg-slate-100">
-    <th className="border border-slate-300 px-2 py-[6px] text-center align-middle text-[10px] font-extrabold leading-none text-slate-900">
+    <th className="border border-slate-300 px-2 py-[6px] text-center align-middle text-[12px] font-extrabold leading-none text-slate-900">
       #
     </th>
 
-    <th className="border border-slate-300 px-2 py-[6px] text-center align-middle text-[10px] font-extrabold leading-none text-slate-900">
+    <th className="border border-slate-300 px-2 py-[6px] text-center align-middle text-[12px] font-extrabold leading-none text-slate-900">
       Due Date
     </th>
 
-    <th className="border border-slate-300 px-2 py-[6px] text-center align-middle text-[10px] font-extrabold leading-none text-slate-900">
+    <th className="border border-slate-300 px-2 py-[6px] text-center align-middle text-[12px] font-extrabold leading-none text-slate-900">
       Lift Amount
     </th>
 
-    <th className="border border-slate-300 px-2 py-[6px] text-center align-middle text-[10px] font-extrabold leading-none text-slate-900">
+    <th className="border border-slate-300 px-2 py-[6px] text-center align-middle text-[12px] font-extrabold leading-none text-slate-900">
       Amount Due
     </th>
 
-    <th className="border border-slate-300 px-2 py-[6px] text-center align-middle text-[10px] font-extrabold leading-none text-slate-900">
+    <th className="border border-slate-300 px-2 py-[6px] text-center align-middle text-[12px] font-extrabold leading-none text-slate-900">
       Amount Paid
     </th>
 
-    <th className="border border-slate-300 px-2 py-[6px] text-center align-middle text-[10px] font-extrabold leading-none text-slate-900">
+    <th className="border border-slate-300 px-2 py-[6px] text-center align-middle text-[12px] font-extrabold leading-none text-slate-900">
       Paid On
     </th>
 
-    <th className="border border-slate-300 px-2 py-[6px] text-center align-middle text-[10px] font-extrabold leading-none text-slate-900">
+    <th className="border border-slate-300 px-2 py-[6px] text-center align-middle text-[12px] font-extrabold leading-none text-slate-900">
       Mode
     </th>
 
-    <th className="border border-slate-300 px-2 py-[6px] text-center align-middle text-[10px] font-extrabold leading-none text-slate-900">
+    <th className="border border-slate-300 px-2 py-[6px] text-center align-middle text-[12px] font-extrabold leading-none text-slate-900">
   Balance
 </th>
   </tr>
