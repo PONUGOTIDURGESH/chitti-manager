@@ -44,7 +44,7 @@ export default function StatementSummary({
 
         <Card
           title="Current EMI"
-          value={formatMoney(member.installment_amount)}
+          value={formatMoney(finance.currentInstallment)}
         />
 
           <Card

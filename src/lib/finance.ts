@@ -39,12 +39,17 @@ export interface MemberFinance {
   installmentsRemaining: number;
   collectionPercentage: number;
   status: MemberStatus;
+  currentInstallment: number;
 }
 
 export interface ChittiFinance {
   totalExpected: number;
   totalCollected: number;
   remainingBalance: number;
+  
+  currentMonthCollected: number;
+currentMonthBalance: number;
+
   collectionPercentage: number;
   totalMembers: number;
   upToDateCount: number;
@@ -309,6 +314,21 @@ export function computeMemberFinance(
     totalExpected
   );
 
+  const now = new Date();
+
+const currentMonth = `${now.getFullYear()}-${String(
+  now.getMonth() + 1
+).padStart(2, '0')}`;
+
+const currentRow = rows.find(
+  (row) => row.dueDate?.startsWith(currentMonth)
+);
+
+const currentInstallment =
+  currentRow?.amountDue ??
+  rows.find((row) => row.status !== 'PAID')?.amountDue ??
+  0;
+
   return {
     totalExpected,
     totalPaid,
@@ -317,6 +337,7 @@ export function computeMemberFinance(
     installmentsRemaining,
     collectionPercentage,
     status,
+    currentInstallment,
   };
 }
 
@@ -385,6 +406,9 @@ export function computeChittiFinance(
   let pendingCount = 0;
   let completedCount = 0;
 
+  let currentMonthCollected = 0;
+let currentMonthBalance = 0;
+
   for (const member of members) {
     if (member.archived) continue;
 
@@ -394,6 +418,30 @@ export function computeChittiFinance(
       chitti,
       schedules
     );
+    const memberRows = getInstallmentRows(
+  member,
+  payments,
+  chitti,
+  schedules
+);
+
+const now = new Date();
+
+const currentMonth = `${now.getFullYear()}-${String(
+  now.getMonth() + 1
+).padStart(2, '0')}`;
+
+const currentRow = memberRows.find(
+  (row) => row.dueDate?.startsWith(currentMonth)
+);
+
+if (currentRow) {
+  currentMonthCollected += currentRow.amountPaid;
+  currentMonthBalance += Math.max(
+    0,
+    currentRow.amountDue - currentRow.amountPaid
+  );
+}
 
     totalExpected += finance.totalExpected;
     totalCollected += finance.totalPaid;
@@ -436,6 +484,8 @@ export function computeChittiFinance(
     totalExpected,
     totalCollected,
     remainingBalance,
+    currentMonthCollected,
+currentMonthBalance,
     collectionPercentage,
 
     totalMembers: members.filter(

@@ -1622,7 +1622,7 @@ const finance = computeChittiFinance(
       </p>
 
       <p className="mt-0.5 text-sm font-bold text-emerald-400">
-        {formatMoney(finance.totalCollected)}
+        {formatMoney(finance.currentMonthCollected)}
       </p>
 
     </div>
@@ -1638,7 +1638,7 @@ const finance = computeChittiFinance(
       </p>
 
       <p className="mt-0.5 text-sm font-bold text-amber-400">
-        {formatMoney(finance.remainingBalance)}
+        {formatMoney(finance.currentMonthBalance)}
       </p>
 
     </div>
