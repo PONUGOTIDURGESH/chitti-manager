@@ -74,10 +74,16 @@ const getTouchDistance = (touches: React.TouchList) => {
   return Math.sqrt(dx * dx + dy * dy);
 };
 
+
+
+
 const handleTouchStart = (e: React.TouchEvent) => {
   if (e.touches.length === 2) {
-    pinchStartDistance.current = getTouchDistance(e.touches);
+    pinchStartDistance.current =
+      getTouchDistance(e.touches);
+
     pinchStartZoom.current = zoom;
+    return;
   }
 
   if (e.touches.length === 1 && zoom > 1) {
@@ -88,27 +94,107 @@ const handleTouchStart = (e: React.TouchEvent) => {
   }
 };
 
-
-
 const handleTouchMove = (e: React.TouchEvent) => {
-  if (e.touches.length === 2 && pinchStartDistance.current) {
+  // =========================================================
+  // TWO FINGERS → PINCH ZOOM
+  // =========================================================
+  if (
+    e.touches.length === 2 &&
+    pinchStartDistance.current !== null
+  ) {
     e.preventDefault();
 
-    const currentDistance = getTouchDistance(e.touches);
-    const ratio = currentDistance / pinchStartDistance.current;
+    const currentDistance =
+      getTouchDistance(e.touches);
 
-    setZoom(
-      Math.min(
-        2.5,
-        Math.max(0.6, pinchStartZoom.current * ratio)
+    const ratio =
+      currentDistance /
+      pinchStartDistance.current;
+
+    const nextZoom = Math.min(
+      2.5,
+      Math.max(
+        1,
+        pinchStartZoom.current * ratio
       )
     );
+
+    setZoom(nextZoom);
+
+    if (nextZoom <= 1) {
+      setPan({ x: 0, y: 0 });
+    }
+
+    return;
+  }
+
+  // =========================================================
+  // ONE FINGER → HORIZONTAL PAN WHEN ZOOMED
+  // =========================================================
+  if (
+    e.touches.length === 1 &&
+    zoom > 1
+  ) {
+    const currentX =
+      e.touches[0].clientX;
+
+    const currentY =
+      e.touches[0].clientY;
+
+    const deltaX =
+      currentX - lastTouch.current.x;
+
+    const deltaY =
+      currentY - lastTouch.current.y;
+
+    // Only capture horizontal dragging.
+    // Vertical movement remains normal page scrolling.
+    if (Math.abs(deltaX) > Math.abs(deltaY)) {
+      e.preventDefault();
+
+      const pageWidth =
+        statementRef.current?.offsetWidth ??
+        794;
+
+      const viewportWidth =
+        statementRef.current?.parentElement
+          ?.clientWidth ??
+        window.innerWidth;
+
+      const scaledPageWidth =
+        pageWidth * pageScale * zoom;
+
+      const maxPanX = Math.max(
+        0,
+        (scaledPageWidth -
+          viewportWidth) / 2
+      );
+
+      setPan((current) => ({
+        x: Math.max(
+          -maxPanX,
+          Math.min(
+            maxPanX,
+            current.x + deltaX
+          )
+        ),
+        y: current.y,
+      }));
+    }
+
+    lastTouch.current = {
+      x: currentX,
+      y: currentY,
+    };
   }
 };
 
 const handleTouchEnd = () => {
   pinchStartDistance.current = null;
 };
+
+
+
 
 const scale = Math.min(
   1,
