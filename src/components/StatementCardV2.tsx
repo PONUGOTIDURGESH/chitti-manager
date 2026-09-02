@@ -315,33 +315,31 @@ export default function StatementCardV2({
           ===================================================== */}
 
       <div
-        ref={viewportRef}
-        className="w-full overflow-hidden px-4 py-5"
-        style={{
-          touchAction:
-            zoom > 1
-              ? "none"
-              : "pan-y",
-        }}
-      >
+  ref={viewportRef}
+  className="w-full overflow-hidden bg-slate-100 px-2 py-3"
+  style={{
+    touchAction: zoom > 1 ? "none" : "pan-y",
+  }}
+>
 
         {/* ===================================================
             ZOOM / PAN CONTAINER
             =================================================== */}
 
         <div
-          className="flex w-full justify-center"
-          onTouchStart={handleTouchStart}
-          onTouchMove={handleTouchMove}
-          onTouchEnd={handleTouchEnd}
-          style={{
-            transform: `translate(${pan.x}px, ${pan.y}px)`,
-            transition:
-              pinchStartDistance.current === null
-                ? "transform 0.05s linear"
-                : "none",
-          }}
-        >
+  className="flex w-full justify-center"
+  onTouchStart={handleTouchStart}
+  onTouchMove={handleTouchMove}
+  onTouchEnd={handleTouchEnd}
+  style={{
+    transform: `translate(${pan.x}px, ${pan.y}px)`,
+    transformOrigin: "center center",
+    transition:
+      pinchStartDistance.current === null
+        ? "transform 0.05s linear"
+        : "none",
+  }}
+>
 
           {/* =================================================
               A4 PAGE
@@ -349,7 +347,7 @@ export default function StatementCardV2({
 
           <div
             ref={statementRef}
-            className="relative bg-white text-slate-900 shadow-md"
+            className="relative bg-white text-slate-900 shadow-xl ring-1 ring-slate-200"
             style={{
               width:
                 "min(794px, calc(100vw - 32px))",
@@ -444,7 +442,7 @@ export default function StatementCardV2({
           SHARE / DOWNLOAD BUTTONS
           ===================================================== */}
 
-      <div className="border-t border-slate-300 bg-slate-200/60 px-4 py-4">
+      <div className="border-t border-slate-200 bg-white px-4 py-4">
         <ShareButtons
           targetRef={statementRef}
           filename={`${member.full_name}-statement`}
