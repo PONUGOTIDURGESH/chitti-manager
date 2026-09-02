@@ -1,5 +1,10 @@
 import type { MemberLift } from "@/types";
-import { useMemo, useRef, useState } from "react";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import type { TouchEvent } from "react";
 
 import StatementHeader from "./statement/StatementHeader";
@@ -44,7 +49,13 @@ export default function StatementCardV2({
         schedules,
         lifts
       ),
-    [member, payments, chitti, schedules, lifts]
+    [
+      member,
+      payments,
+      chitti,
+      schedules,
+      lifts,
+    ]
   );
 
   const finance = useMemo(
@@ -55,7 +66,12 @@ export default function StatementCardV2({
         chitti,
         schedules
       ),
-    [member, payments, chitti, schedules]
+    [
+      member,
+      payments,
+      chitti,
+      schedules,
+    ]
   );
 
   // =========================================================
@@ -67,12 +83,21 @@ export default function StatementCardV2({
 
   const viewportRef =
     useRef<HTMLDivElement>(null);
+    useEffect(() => {
+  viewportRef.current?.scrollTo({
+    top: 0,
+    left: 0,
+    behavior: "instant",
+  });
+
+  resetPan();
+}, [member.id]);
 
   // =========================================================
-  // MOBILE ZOOM / PAN
+  // ZOOM / PAN
   // =========================================================
 
-  const [zoom, setZoom] = useState(1);
+  const [zoom, setZoom] = useState(1.08);
 
   const [pan, setPan] = useState({
     x: 0,
@@ -95,9 +120,11 @@ export default function StatementCardV2({
   // =========================================================
 
   const getTouchDistance = (
-  touches: React.TouchList
-) => {
-    if (touches.length < 2) return 0;
+    touches: React.TouchList
+  ) => {
+    if (touches.length < 2) {
+      return 0;
+    }
 
     const dx =
       touches[0].clientX -
@@ -123,7 +150,7 @@ export default function StatementCardV2({
     });
   };
 
-  // =========================================================
+   // =========================================================
   // TOUCH START
   // =========================================================
 
@@ -140,7 +167,7 @@ export default function StatementCardV2({
       return;
     }
 
-    // ONE FINGER → START PAN ONLY WHEN ZOOMED
+    // ONE FINGER → PAN WHEN ZOOMED
     if (
       e.touches.length === 1 &&
       zoom > 1
@@ -160,7 +187,7 @@ export default function StatementCardV2({
     e: TouchEvent<HTMLDivElement>
   ) => {
     // =======================================================
-    // TWO FINGERS → PINCH
+    // TWO FINGERS → PINCH ZOOM
     // =======================================================
 
     if (
@@ -171,6 +198,12 @@ export default function StatementCardV2({
 
       const currentDistance =
         getTouchDistance(e.touches);
+
+      if (
+        pinchStartDistance.current <= 0
+      ) {
+        return;
+      }
 
       const ratio =
         currentDistance /
@@ -220,7 +253,12 @@ export default function StatementCardV2({
       const viewport =
         viewportRef.current;
 
-      if (!viewport) return;
+      const statement =
+        statementRef.current;
+
+      if (!viewport || !statement) {
+        return;
+      }
 
       const viewportWidth =
         viewport.clientWidth;
@@ -228,45 +266,28 @@ export default function StatementCardV2({
       const viewportHeight =
         viewport.clientHeight;
 
-      // Base A4 dimensions
-      const baseWidth = 794;
-      const baseHeight = 1123;
-
-      // Current responsive page width
-      const pageWidth =
-        Math.min(
-          baseWidth,
-          Math.max(
-            1,
-            viewportWidth - 32
-          )
-        );
-
-      const pageScale =
-        pageWidth / baseWidth;
+      // Actual visual size after zoom
+      const rect =
+        statement.getBoundingClientRect();
 
       const scaledWidth =
-        baseWidth *
-        pageScale *
-        zoom;
+        rect.width;
 
       const scaledHeight =
-        baseHeight *
-        pageScale *
-        zoom;
+        rect.height;
 
+      // Horizontal pan boundary
       const maxPanX = Math.max(
         0,
         (scaledWidth -
-          viewportWidth) /
-          2
+          viewportWidth) / 2
       );
 
+      // Vertical pan boundary
       const maxPanY = Math.max(
         0,
         (scaledHeight -
-          viewportHeight) /
-          2
+          viewportHeight) / 2
       );
 
       setPan((current) => ({
@@ -298,73 +319,108 @@ export default function StatementCardV2({
   // TOUCH END
   // =========================================================
 
-  const handleTouchEnd = () => {
-    pinchStartDistance.current =
-      null;
+  const handleTouchEnd = (
+    e: TouchEvent<HTMLDivElement>
+  ) => {
+    if (e.touches.length < 2) {
+      pinchStartDistance.current =
+        null;
+    }
+
+    if (
+      e.touches.length === 1 &&
+      zoom > 1
+    ) {
+      lastTouch.current = {
+        x: e.touches[0].clientX,
+        y: e.touches[0].clientY,
+      };
+    } else {
+      lastTouch.current = {
+        x: 0,
+        y: 0,
+      };
+    }
   };
 
   // =========================================================
   // RESPONSIVE A4 WIDTH
   // =========================================================
-
   return (
-    <div className="flex w-full flex-col bg-slate-200/60">
-
+    <div className="flex w-full flex-col bg-slate-950">
       {/* =====================================================
-          DOCUMENT VIEWPORT
+          DOCUMENT VIEWER
           ===================================================== */}
 
       <div
   ref={viewportRef}
-  className="w-full overflow-hidden bg-slate-100 px-2 py-3"
+  className="relative w-full bg-slate-300/70 px-2 py-2"
   style={{
-    touchAction: zoom > 1 ? "none" : "pan-y",
-  }}
->
+  height:
+    "min(520px, calc(100dvh - 300px))",
 
+  minHeight: "420px",
+
+  overflow:
+    zoom > 1
+      ? "hidden"
+      : "auto",
+
+  touchAction:
+    zoom > 1
+      ? "none"
+      : "pan-y",
+
+  WebkitOverflowScrolling:
+    "touch",
+
+  overscrollBehavior:
+    "contain",
+
+  scrollbarWidth:
+    "none",
+}}
+>
         {/* ===================================================
-            ZOOM / PAN CONTAINER
+            DOCUMENT
             =================================================== */}
 
         <div
   className="flex w-full justify-center"
-  onTouchStart={handleTouchStart}
-  onTouchMove={handleTouchMove}
-  onTouchEnd={handleTouchEnd}
-  style={{
-    transform: `translate(${pan.x}px, ${pan.y}px)`,
-    transformOrigin: "center center",
-    transition:
-      pinchStartDistance.current === null
-        ? "transform 0.05s linear"
-        : "none",
-  }}
->
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+          style={{
+            transform:
+              `translate(${pan.x}px, ${pan.y}px)`,
+            transformOrigin:
+              "center center",
 
-          {/* =================================================
-              A4 PAGE
-              ================================================= */}
-
+            transition:
+              pinchStartDistance.current === null
+                ? "transform 0.05s linear"
+                : "none",
+          }}
+        >
           <div
             ref={statementRef}
-            className="relative bg-white text-slate-900 shadow-xl ring-1 ring-slate-200"
+            className="relative shrink-0 bg-white text-slate-900 shadow-2xl"
             style={{
               width:
                 "min(794px, calc(100vw - 32px))",
 
               minHeight:
-                "calc((min(794px, calc(100vw - 32px))) * 1.414)",
+                "calc(min(794px, calc(100vw - 32px)) * 1.414)",
 
               padding: "6mm",
 
-              transform: `scale(${zoom})`,
+              transform:
+                `scale(${zoom})`,
+
               transformOrigin:
                 "center center",
-
-              flexShrink: 0,
             }}
           >
-
             {/* =================================================
                 HEADER
                 ================================================= */}
@@ -433,22 +489,20 @@ export default function StatementCardV2({
                 }
               />
             </div>
-
           </div>
         </div>
       </div>
 
       {/* =====================================================
-          SHARE / DOWNLOAD BUTTONS
+          ACTION BAR
           ===================================================== */}
 
-      <div className="border-t border-slate-200 bg-white px-4 py-4">
+      <div className="border-t border-slate-800 bg-slate-950 px-3 py-4">
         <ShareButtons
           targetRef={statementRef}
           filename={`${member.full_name}-statement`}
         />
       </div>
-
     </div>
   );
 }
