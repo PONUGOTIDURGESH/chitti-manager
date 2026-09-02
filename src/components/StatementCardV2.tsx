@@ -131,8 +131,8 @@ const pageScale = scale;
   onTouchEnd={handleTouchEnd}
   style={{
     transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
-    transformOrigin: "top center",
-    touchAction: "none",
+    transformOrigin: "center center",
+    touchAction: "pan-y",
   }}
 >
   <div
@@ -144,7 +144,7 @@ const pageScale = scale;
   padding: "6mm",
   overflow: "visible",
   transform: `scale(${pageScale})`,
-  transformOrigin: "top center",
+  transformOrigin: "center center",
 }}
     >
       {/* Header */}
