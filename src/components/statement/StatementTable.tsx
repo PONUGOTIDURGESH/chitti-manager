@@ -107,7 +107,7 @@ export default function StatementTable({
     <tr key={lift.id}>
       <td
         colSpan={8}
-        className="border border-slate-300 bg-green-100 px-3 py-[6px] text-center align-middle text-[11px] font-semibold leading-none text-[#0F172A]"
+        className="border border-slate-300 bg-green-100 px-3 py-[6px] text-center align-middle text-[15px] font-semibold leading-none text-[#0F172A]"
       >
         Chitti Lift Amount Paid • Lift Month {lift.lifted_month_number} •{" "}
         {formatMoney(Number(lift.lift_amount))} • {lift.paid_date}
