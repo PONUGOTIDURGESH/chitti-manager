@@ -306,9 +306,8 @@ valueElements.forEach((element) => {
         })
       ) {
         await navigator.share({
-          files: [file],
-          title: filename,
-        });
+  files: [file],
+});
 
         return;
       }
