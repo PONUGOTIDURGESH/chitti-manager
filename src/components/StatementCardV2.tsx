@@ -497,7 +497,7 @@ export default function StatementCardV2({
           ACTION BAR
           ===================================================== */}
 
-      <div className="border-t border-slate-800 bg-slate-950 px-3 py-4">
+      <div className="mt-6 border-t border-slate-800 bg-slate-950 px-3 py-4">
         <ShareButtons
           targetRef={statementRef}
           filename={`${member.full_name}-statement`}
