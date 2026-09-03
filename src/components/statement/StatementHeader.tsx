@@ -1,4 +1,11 @@
-import { formatDate, todayISO } from "@/lib/format";
+import type { ReactNode } from "react";
+import {
+  CalendarDays,
+  CreditCard,
+  Phone,
+  UserRound,
+} from "lucide-react";
+import { formatDate } from "@/lib/format";
 
 type Props = {
   memberName: string;
@@ -7,24 +14,31 @@ type Props = {
   startDate: string | null;
 };
 
-function InfoItem({
+function InfoRow({
+  icon,
   label,
   value,
-  valueClassName = "text-[10px] font-semibold text-slate-900",
 }: {
+  icon: ReactNode;
   label: string;
   value: string;
-  valueClassName?: string;
 }) {
   return (
-    <div className="flex items-center border-b border-slate-200 py-1 last:border-0">
-      <span className="w-[120px] text-[9px] font-medium text-slate-500">
+    <div className="flex min-w-0 items-center gap-2.5">
+      {/* ICON */}
+      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-600 text-white shadow-sm">
+        {icon}
+      </div>
+
+      {/* LABEL */}
+      <span className="w-[82px] shrink-0 text-[11px] font-bold text-slate-500">
         {label}
       </span>
 
-      <span className={valueClassName}>
-        {value}
-      </span>
+      {/* VALUE */}
+      <span className="min-w-0 flex-1 truncate text-[14px] font-extrabold leading-none text-[#142b62]">
+  {value}
+</span>
     </div>
   );
 }
@@ -36,52 +50,60 @@ export default function StatementHeader({
   startDate,
 }: Props) {
   return (
-    <>
-      <header className="border-b-[3px] border-slate-900 pb-2 align-middle">
-        <div>
-          <div>
-            <p className="mb-1 text-[8px] font-semibold uppercase tracking-[0.16em] text-slate-500">
-              Account Statement
-            </p>
+    <section className="space-y-1.5.5">
+      {/* =====================================================
+          STATEMENT TITLE
+          ===================================================== */}
+      <header className="border-b-[3px] border-blue-700 pb-2">
+  <p className="mb-1 text-[7px] font-extrabold uppercase tracking-[0.2em] text-blue-600">
+    Account Statement
+  </p>
 
-            <h1 className="text-[15px] font-black tracking-tight text-slate-950 leading-none">
-              CHITTI PAYMENT STATEMENT
-            </h1>
+  <h1 className="text-[14px] font-black uppercase leading-none tracking-[-0.03em] text-[#10285c]">
+    Chitti Payment Statement
+  </h1>
+</header>
+
+      {/* =====================================================
+          MEMBER / CHITTI INFORMATION
+          ===================================================== */}
+      <section className="rounded-[10px] border border-blue-100 bg-gradient-to-r from-white via-blue-50/20 to-white px-3 py-1.5 shadow-sm">
+        <div className="grid grid-cols-2">
+          {/* =================================================
+              LEFT INFORMATION
+              ================================================= */}
+          <div className="space-y-1.5 border-r border-blue-100 pr-6">
+            <InfoRow
+              icon={<UserRound className="h-4 w-4" strokeWidth={2.2} />}
+              label="Member"
+              value={memberName}
+            />
+
+            <InfoRow
+              icon={<Phone className="h-4 w-4" strokeWidth={2.2} />}
+              label="Mobile Number"
+              value={mobileNumber || "—"}
+            />
           </div>
-          
-          
+
+          {/* =================================================
+              RIGHT INFORMATION
+              ================================================= */}
+          <div className="space-y-1.5 pl-7">
+            <InfoRow
+              icon={<CreditCard className="h-4 w-4" strokeWidth={2.2} />}
+              label="Chitti"
+              value={chittiName}
+            />
+
+            <InfoRow
+              icon={<CalendarDays className="h-4 w-4" strokeWidth={2.2} />}
+              label="Start Date"
+              value={startDate ? formatDate(startDate) : "—"}
+            />
+          </div>
         </div>
-      </header>
-
-      <section className="mt-0 grid grid-cols-2 gap-x-4 rounded-lg border border-slate-200 bg-slate-50 px-3 py-1">
-        <InfoItem
-          label="Member"
-          value={memberName}
-          valueClassName="text-[16px] font-semibold text-slate-900"
-        />
-
-        <InfoItem
-          label="Chitti"
-          value={chittiName}
-          valueClassName="text-[14px] font-semibold text-slate-900"
-        />
-
-        <InfoItem
-          label="Mobile Number"
-          value={mobileNumber || "—"}
-          valueClassName="text-[14px] font-semibold text-slate-900"
-        />
-
-        <InfoItem
-          label="Start Date"
-          value={
-            startDate
-              ? formatDate(startDate)
-              : "—"
-          }
-          valueClassName="text-[14px] font-semibold text-slate-900"
-        />
       </section>
-    </>
+    </section>
   );
 }

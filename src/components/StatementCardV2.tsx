@@ -6,7 +6,7 @@ import {
   useState,
 } from "react";
 import type { TouchEvent } from "react";
-
+import { formatMoney } from "@/lib/format";
 import StatementHeader from "./statement/StatementHeader";
 import StatementTable from "./statement/StatementTable";
 import StatementFooter from "./statement/StatementFooter";
@@ -469,6 +469,11 @@ export default function StatementCardV2({
               />
             </div>
 
+            {/* =====================================================
+    CHITTI LIFT STATEMENT
+    ===================================================== */}
+
+
             {/* =================================================
                 FOOTER
                 ================================================= */}
@@ -497,12 +502,12 @@ export default function StatementCardV2({
           ACTION BAR
           ===================================================== */}
 
-      <div className="mt-6 border-t border-slate-800 bg-slate-950 px-3 py-4">
-        <ShareButtons
-          targetRef={statementRef}
-          filename={`${member.full_name}-statement`}
-        />
-      </div>
+      <div className="mt-24 border-t border-slate-800 bg-slate-950 px-3 py-4">
+  <ShareButtons
+    targetRef={statementRef}
+    filename={`${member.full_name}-statement`}
+  />
+</div>
     </div>
   );
 }

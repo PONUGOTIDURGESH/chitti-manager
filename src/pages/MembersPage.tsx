@@ -444,77 +444,81 @@ if (statementFilter === 'unsent') {
     statementFilter,
   ]);
 
-  // ====================================================
-  // LOADING / ERROR
-  // ====================================================
-
-  if (loading) {
-    return (
-      <div className="grid gap-3">
-        {Array.from({
-          length: 4,
-        }).map((_, index) => (
-          <SkeletonCard
-            key={index}
-          />
-        ))}
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <ErrorState
-        message={error}
-        onRetry={refresh}
-      />
-    );
-  }
-
     // ====================================================
   // DASHBOARD SUMMARY
   // ====================================================
 
-  const summary = useMemo(() => {
-    const active = enriched.filter(
-      ({ member }) => !member.archived
-    );
+  // ====================================================
+// DASHBOARD SUMMARY
+// ====================================================
 
-    return {
-      total: active.length,
+const summary = useMemo(() => {
+  const active = enriched.filter(
+    ({ member }) => !member.archived
+  );
 
-      collected: active.reduce(
-        (sum, item) =>
-          sum + Number(item.finance.totalPaid || 0),
-        0
-      ),
+  return {
+    total: active.length,
 
-      outstanding: active.reduce(
-        (sum, item) =>
-          sum + Number(item.finance.remainingBalance || 0),
-        0
-      ),
+    collected: active.reduce(
+      (sum, item) =>
+        sum + Number(item.finance.totalPaid || 0),
+      0
+    ),
 
-      pending: active.filter((item) =>
-        [
-          'DUE',
-          'OVERDUE',
-          'PARTIALLY_PAID',
-          'DUE_SOON',
-        ].includes(item.finance.status)
-      ).length,
+    outstanding: active.reduce(
+      (sum, item) =>
+        sum + Number(item.finance.remainingBalance || 0),
+      0
+    ),
 
-      overdue: active.filter(
-        (item) =>
-          item.finance.status === 'OVERDUE'
-      ).length,
+    pending: active.filter((item) =>
+      [
+        'DUE',
+        'OVERDUE',
+        'PARTIALLY_PAID',
+        'DUE_SOON',
+      ].includes(item.finance.status)
+    ).length,
 
-      completed: active.filter(
-        (item) =>
-          item.finance.status === 'COMPLETED'
-      ).length,
-    };
-  }, [enriched]);
+    overdue: active.filter(
+      (item) =>
+        item.finance.status === 'OVERDUE'
+    ).length,
+
+    completed: active.filter(
+      (item) =>
+        item.finance.status === 'COMPLETED'
+    ).length,
+  };
+}, [enriched]);
+
+// ====================================================
+// LOADING / ERROR
+// ====================================================
+
+if (loading) {
+  return (
+    <div className="grid gap-3">
+      {Array.from({
+        length: 4,
+      }).map((_, index) => (
+        <SkeletonCard
+          key={index}
+        />
+      ))}
+    </div>
+  );
+}
+
+if (error) {
+  return (
+    <ErrorState
+      message={error}
+      onRetry={refresh}
+    />
+  );
+}
 
   // ====================================================
   // UI
