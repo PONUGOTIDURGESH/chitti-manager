@@ -12,6 +12,7 @@ type Props = {
   mobileNumber: string | null;
   chittiName: string;
   startDate: string | null;
+  units: number | null | undefined;
 };
 
 function InfoRow({
@@ -36,9 +37,11 @@ function InfoRow({
       </span>
 
       {/* VALUE */}
-      <span className="min-w-0 flex-1 truncate text-[14px] font-extrabold leading-none text-[#142b62]">
-  {value}
-</span>
+      <div className="min-w-0 flex-1">
+  <span className="block truncate text-[14px] font-extrabold leading-none text-[#142b62]">
+    {value}
+  </span>
+</div>
     </div>
   );
 }
@@ -48,6 +51,7 @@ export default function StatementHeader({
   mobileNumber,
   chittiName,
   startDate,
+  units,
 }: Props) {
   return (
     <section className="space-y-1.5.5">
@@ -90,11 +94,28 @@ export default function StatementHeader({
               RIGHT INFORMATION
               ================================================= */}
           <div className="space-y-1.5 pl-7">
-            <InfoRow
-              icon={<CreditCard className="h-4 w-4" strokeWidth={2.2} />}
-              label="Chitti"
-              value={chittiName}
-            />
+            <div className="flex min-w-0 items-center gap-2.5">
+  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-600 text-white shadow-sm">
+    <CreditCard
+      className="h-4 w-4"
+      strokeWidth={2.2}
+    />
+  </div>
+
+  <span className="w-[82px] shrink-0 text-[11px] font-bold text-slate-500">
+    Chitti
+  </span>
+
+  <div className="min-w-0 flex-1">
+    <p className="truncate text-[14px] font-extrabold leading-none text-[#142b62]">
+      {chittiName}
+    </p>
+
+    <p className="mt-1 text-[9px] font-bold leading-none text-blue-600">
+      {units ?? 1} {units === 1 ? "Chitti" : "Chittis"}
+    </p>
+  </div>
+</div>
 
             <InfoRow
               icon={<CalendarDays className="h-4 w-4" strokeWidth={2.2} />}

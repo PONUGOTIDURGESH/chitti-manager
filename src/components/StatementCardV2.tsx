@@ -439,6 +439,7 @@ export default function StatementCardV2({
               startDate={
                 member.start_date
               }
+               units={member.units ?? 1}
             />
 
             {/* =================================================

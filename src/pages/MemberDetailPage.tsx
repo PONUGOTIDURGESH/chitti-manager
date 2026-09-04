@@ -1,7 +1,27 @@
 import { useEffect, useMemo, useState, useRef } from 'react';
 
 import { motion } from 'framer-motion';
-import { ArrowLeft, Phone, Plus, Share2, FileText, Edit3, Undo2, Archive, Trash2, Clock, CheckCircle2, UserPlus, Wallet } from 'lucide-react';
+import {
+  ArrowLeft,
+  Phone,
+  Plus,
+  Share2,
+  FileText,
+  Edit3,
+  Undo2,
+  Archive,
+  Trash2,
+  Clock,
+  CheckCircle2,
+  UserPlus,
+  Wallet,
+  UserRound,
+  CalendarDays,
+  CreditCard,
+  Hash,
+  StickyNote,
+  ReceiptText,
+} from 'lucide-react';
 import { Avatar } from '@/components/Avatar';
 import { StatusBadge, StatusBadgeAnimated } from '@/components/StatusBadge';
 import { ProgressBar } from '@/components/ProgressBar';
@@ -1028,90 +1048,209 @@ function AddPaymentModal({
       title={editing ? 'Edit payment' : 'Add payment'}
       size="lg"
       footer={
-        <>
-          <button className="btn-secondary flex-1" onClick={onClose} type="button">
-            Cancel
-          </button>
-          <button
-            className="btn-primary flex-1"
-            disabled={busy}
-            onClick={() => submit(false)}
-            type="button"
-          >
-            {busy ? 'Saving...' : editing ? 'Save changes' : 'Confirm payment'}
-          </button>
-        </>
+  <div className="flex w-full gap-3">
+    <button
+      className="flex-1 rounded-2xl border border-slate-700 bg-slate-800/80 px-4 py-3.5 text-sm font-bold text-slate-300 transition-all hover:bg-slate-700 disabled:opacity-50"
+      onClick={onClose}
+      type="button"
+      disabled={busy}
+    >
+      Cancel
+    </button>
+
+    <button
+      className="flex-[1.6] rounded-2xl bg-gradient-to-r from-blue-600 to-blue-500 px-4 py-3.5 text-sm font-extrabold text-white shadow-lg shadow-blue-600/20 transition-all hover:from-blue-500 hover:to-blue-400 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
+      disabled={busy}
+      onClick={() => submit(false)}
+      type="button"
+    >
+      <span className="flex items-center justify-center gap-2">
+        {busy ? (
+          <>
+            <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+            Saving...
+          </>
+        ) : (
+          <>
+            <CheckCircle2 className="h-4 w-4" />
+            {editing ? 'Save changes' : 'Confirm payment'}
+          </>
+        )}
+      </span>
+    </button>
+  </div>
+}
+    >
+      <div className="space-y-5">
+        <div className="relative overflow-hidden rounded-3xl border border-slate-700/80 bg-gradient-to-br from-slate-800 via-slate-800 to-slate-900 p-4">
+  <div className="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-blue-500/10 blur-3xl" />
+
+  <div className="relative flex items-center gap-3">
+    <div className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-blue-500/15 text-blue-400 ring-1 ring-blue-400/20">
+      <UserRound className="h-6 w-6" />
+    </div>
+
+    <div className="min-w-0 flex-1">
+      <p className="truncate text-[16px] font-extrabold tracking-tight text-white">
+        {member.full_name}
+      </p>
+
+      <p className="mt-0.5 truncate text-xs font-medium text-slate-400">
+        {chitti?.name ?? 'Chitti member'}
+      </p>
+    </div>
+
+    {chitti?.lifting_payment_enabled && (
+      <span
+        className={`shrink-0 rounded-full px-2.5 py-1 text-[9px] font-extrabold uppercase tracking-wide ${
+          member.is_lifted
+            ? 'bg-emerald-500/10 text-emerald-400 ring-1 ring-emerald-500/20'
+            : 'bg-amber-500/10 text-amber-400 ring-1 ring-amber-500/20'
+        }`}
+      >
+        {member.is_lifted ? 'Lifted' : 'Not lifted'}
+      </span>
+    )}
+  </div>
+
+  <div className="relative mt-4 grid grid-cols-2 divide-x divide-slate-700/70 border-t border-slate-700/70 pt-3">
+    <div className="pr-4">
+      <p className="text-[9px] font-extrabold uppercase tracking-[0.14em] text-slate-500">
+        Scheduled
+      </p>
+
+      <p className="mt-1 text-[15px] font-extrabold text-slate-100">
+        {formatMoney(scheduledAmount)}
+      </p>
+    </div>
+
+    <div className="pl-4">
+      <p className="text-[9px] font-extrabold uppercase tracking-[0.14em] text-slate-500">
+        Outstanding
+      </p>
+
+      <p className="mt-1 text-[15px] font-extrabold text-amber-400">
+        {formatMoney(outstanding)}
+      </p>
+    </div>
+  </div>
+</div>
+
+        <div className="grid grid-cols-2 gap-3">
+
+  {/* AMOUNT */}
+  <div className="rounded-2xl border border-blue-500/30 bg-blue-500/[0.07] p-3.5">
+    <label className="mb-2 flex items-center gap-1.5 text-[9px] font-extrabold uppercase tracking-[0.12em] text-blue-300">
+      <Wallet className="h-3.5 w-3.5" />
+      Amount
+    </label>
+
+    <div className="flex items-center gap-1">
+      <span className="text-xl font-extrabold text-blue-400">
+        ₹
+      </span>
+
+      <input
+        className="w-full min-w-0 bg-transparent text-[20px] font-extrabold text-white outline-none placeholder:text-slate-600"
+        type="number"
+        onWheel={(e) => e.currentTarget.blur()}
+        min="0"
+        step="0.01"
+        value={amount}
+        onChange={(e) => setAmount(e.target.value)}
+        inputMode="decimal"
+      />
+    </div>
+
+    <p className="mt-1.5 text-[9px] font-medium text-slate-500">
+      Amount being collected
+    </p>
+  </div>
+
+
+  {/* INSTALLMENT MONTH */}
+  <div className="rounded-2xl border border-slate-700 bg-slate-800/70 p-3.5">
+    <label className="mb-2 flex items-center gap-1.5 text-[9px] font-extrabold uppercase tracking-[0.12em] text-slate-400">
+      <CalendarDays className="h-3.5 w-3.5" />
+      Installment
+    </label>
+
+    <select
+      className="w-full bg-transparent text-[15px] font-extrabold text-white outline-none"
+      value={installmentMonth}
+      onChange={(e) => handleMonthChange(e.target.value)}
+    >
+      {months.map((month) => (
+        <option
+          key={month}
+          value={month}
+          className="bg-slate-900 text-white"
+        >
+          {month}
+        </option>
+      ))}
+    </select>
+
+    <p className="mt-1.5 text-[9px] font-medium text-slate-500">
+      Collection month
+    </p>
+  </div>
+
+</div>
+
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+  {/* PAYMENT DATE */}
+  <div className="min-w-0 rounded-2xl border border-slate-700 bg-slate-800/70 p-3.5">
+    <label className="mb-2 flex items-center gap-1.5 text-[9px] font-extrabold uppercase tracking-[0.12em] text-slate-400">
+      <CalendarDays className="h-3.5 w-3.5" />
+      Payment Date
+    </label>
+
+    <input
+      className="w-full min-w-0 bg-transparent text-[15px] font-extrabold text-white outline-none"
+      type="date"
+      value={paymentDate}
+      onChange={(e) => setPaymentDate(e.target.value)}
+    />
+
+    <p className="mt-1.5 text-[9px] font-medium text-slate-500">
+      Date payment was received
+    </p>
+  </div>
+
+  {/* PAYMENT MODE */}
+  <div className="min-w-0 rounded-2xl border border-emerald-500/20 bg-emerald-500/[0.05] p-3.5">
+    <label className="mb-2 flex items-center gap-1.5 text-[9px] font-extrabold uppercase tracking-[0.12em] text-emerald-300">
+      <CreditCard className="h-3.5 w-3.5" />
+      Payment Mode
+    </label>
+
+    <select
+      className="w-full min-w-0 bg-transparent text-[15px] font-extrabold text-white outline-none"
+      value={paymentMode}
+      onChange={(e) =>
+        setPaymentMode(e.target.value as PaymentMode)
       }
     >
-      <div className="space-y-3">
-        <div className="rounded-xl bg-slate-50 p-3 dark:bg-slate-800/50">
-          <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">
-            {member.full_name}
-          </p>
-          <p className="text-xs text-slate-500">
-            Scheduled amount {formatMoney(scheduledAmount)} · Outstanding {formatMoney(outstanding)}
-          </p>
-          {chitti?.lifting_payment_enabled && (
-            <p className="mt-1 text-xs text-slate-500">
-              {member.is_lifted
-                ? `Lifted${member.lifted_date ? ` on ${formatDate(member.lifted_date)}` : ''}`
-                : 'Not lifted yet'}
-            </p>
-          )}
-        </div>
+      <option value="cash" className="bg-slate-900 text-white">
+        Cash
+      </option>
+      <option value="upi" className="bg-slate-900 text-white">
+        UPI
+      </option>
+      <option value="bank" className="bg-slate-900 text-white">
+        Bank Transfer
+      </option>
+      <option value="other" className="bg-slate-900 text-white">
+        Other
+      </option>
+    </select>
 
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <label className="label">Amount (₹)</label>
-            <input
-              className="input"
-              type="number"
-              onWheel={(e) => e.currentTarget.blur()}
-              min="0"
-              step="0.01"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-              inputMode="decimal"
-            />
-          </div>
-          <div>
-            <label className="label">Installment month</label>
-            <select
-              className="input"
-              value={installmentMonth}
-              onChange={(e) => handleMonthChange(e.target.value)}
-            >
-              {months.map((month) => (
-                <option key={month} value={month}>{month}</option>
-              ))}
-            </select>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <label className="label">Payment date</label>
-            <input
-              className="input"
-              type="date"
-              value={paymentDate}
-              onChange={(e) => setPaymentDate(e.target.value)}
-            />
-          </div>
-          <div>
-            <label className="label">Payment mode</label>
-            <select
-              className="input"
-              value={paymentMode}
-              onChange={(e) => setPaymentMode(e.target.value as PaymentMode)}
-            >
-              <option value="cash">Cash</option>
-              <option value="upi">UPI</option>
-              <option value="bank">Bank Transfer</option>
-              <option value="other">Other</option>
-            </select>
-          </div>
-        </div>
+    <p className="mt-1.5 text-[9px] font-medium text-slate-500">
+      How the payment was received
+    </p>
+  </div>
+</div>
 
         <div>
           <label className="label">Reference number (optional)</label>
