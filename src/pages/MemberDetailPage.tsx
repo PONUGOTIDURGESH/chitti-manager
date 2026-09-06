@@ -88,6 +88,8 @@ const [lifts, setLifts] = useState<MemberLift[]>([]);
 
   const [showAddPayment, setShowAddPayment] = useState(false);
   const [editingPayment, setEditingPayment] = useState<Payment | null>(null);
+  const [selectedInstallment, setSelectedInstallment] =
+  useState<InstallmentRow | null>(null);
   const [confirmReverse, setConfirmReverse] = useState<Payment | null>(null);
   const [confirmArchive, setConfirmArchive] = useState(false);
   const [showStatement, setShowStatement] = useState(false);
@@ -157,6 +159,17 @@ const rows = getInstallmentRows(
   memberSchedules,
   lifts
 );
+
+const installmentMonths = getInstallmentMonths(member);
+
+const selectedInstallmentPayment = selectedInstallment
+  ? memberPayments.find(
+      (payment) =>
+        payment.installment_month ===
+          installmentMonths[selectedInstallment.index - 1] &&
+        !payment.reversed
+    )
+  : undefined;
 
 console.log('DEBUG SCHEDULES', memberSchedules);
 console.log('DEBUG ROWS', rows);
@@ -433,7 +446,11 @@ if (lifts.length === 0) {
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                 {rows.map((r) => (
-                  <tr key={r.index} className="hover:bg-slate-50 dark:hover:bg-slate-800/30">
+                  <tr
+  key={r.index}
+  onClick={() => setSelectedInstallment(r)}
+  className="cursor-pointer hover:bg-blue-50/70 dark:hover:bg-blue-950/20"
+>
                     <td className="px-4 py-2.5 text-slate-500">{r.index}</td>
                     <td className="px-4 py-2.5 font-medium text-slate-800 dark:text-slate-100">{r.monthLabel}</td>
                     <td className="px-4 py-2.5 text-slate-500">{formatDate(r.dueDate)}</td>
@@ -461,7 +478,11 @@ if (lifts.length === 0) {
             {/* Mobile cards */}
             <div className="divide-y divide-slate-100 dark:divide-slate-800 sm:hidden">
               {rows.map((r) => (
-                <div key={r.index} className="p-3.5">
+  <div
+    key={r.index}
+    onClick={() => setSelectedInstallment(r)}
+    className="cursor-pointer p-3.5 hover:bg-blue-50/70 dark:hover:bg-blue-950/20"
+  >
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-semibold text-slate-800 dark:text-slate-100">{r.index}. {r.monthLabel}</span>
                     <InstallmentStatusChip status={r.status} />
@@ -834,6 +855,103 @@ await memberLiftService.create({
   </div>
 </Modal>
 
+{selectedInstallment && (
+  <Modal
+    open={!!selectedInstallment}
+    onClose={() => setSelectedInstallment(null)}
+    title={`Installment #${selectedInstallment.index} Details`}
+    size="lg"
+  >
+    <div className="space-y-4">
+      <div className="rounded-xl border border-blue-100 bg-blue-50/60 p-4 dark:border-blue-900/40 dark:bg-blue-950/20">
+        <p className="text-xs font-semibold uppercase tracking-wide text-blue-600">
+          Installment
+        </p>
+
+        <p className="mt-1 text-lg font-bold text-slate-900 dark:text-white">
+          #{selectedInstallment.index} · {selectedInstallment.monthLabel}
+        </p>
+      </div>
+
+      <div className="grid grid-cols-2 gap-3">
+        <div className="rounded-xl bg-slate-50 p-3 dark:bg-slate-800/50">
+          <p className="text-xs text-slate-500">Due Date</p>
+          <p className="mt-1 font-semibold text-slate-900 dark:text-white">
+            {formatDate(selectedInstallment.dueDate)}
+          </p>
+        </div>
+
+        <div className="rounded-xl bg-slate-50 p-3 dark:bg-slate-800/50">
+          <p className="text-xs text-slate-500">Status</p>
+          <div className="mt-1">
+            <InstallmentStatusChip
+              status={selectedInstallment.status}
+            />
+          </div>
+        </div>
+
+        <div className="rounded-xl bg-slate-50 p-3 dark:bg-slate-800/50">
+          <p className="text-xs text-slate-500">Amount Due</p>
+          <p className="mt-1 font-bold text-slate-900 dark:text-white">
+            {formatMoney(selectedInstallment.amountDue)}
+          </p>
+        </div>
+
+        <div className="rounded-xl bg-slate-50 p-3 dark:bg-slate-800/50">
+          <p className="text-xs text-slate-500">Amount Paid</p>
+          <p className="mt-1 font-bold text-success-600">
+            {formatMoney(selectedInstallment.amountPaid)}
+          </p>
+        </div>
+
+        <div className="rounded-xl bg-slate-50 p-3 dark:bg-slate-800/50">
+          <p className="text-xs text-slate-500">Paid On</p>
+          <p className="mt-1 font-semibold text-slate-900 dark:text-white">
+            {selectedInstallment.paymentDate
+              ? formatDate(selectedInstallment.paymentDate)
+              : '—'}
+          </p>
+        </div>
+
+        <div className="rounded-xl bg-slate-50 p-3 dark:bg-slate-800/50">
+          <p className="text-xs text-slate-500">Payment Mode</p>
+          <p className="mt-1 font-semibold uppercase text-slate-900 dark:text-white">
+            {selectedInstallment.paymentMode ?? '—'}
+          </p>
+        </div>
+      </div>
+
+      {selectedInstallmentPayment && (
+        <button
+          type="button"
+          className="btn-primary w-full"
+          onClick={() => {
+            setSelectedInstallment(null);
+            setEditingPayment(selectedInstallmentPayment);
+          }}
+        >
+          <Edit3 className="h-4 w-4" />
+          Edit Payment
+        </button>
+      )}
+
+      {!selectedInstallmentPayment && (
+        <button
+          type="button"
+          className="btn-primary w-full"
+          onClick={() => {
+            setSelectedInstallment(null);
+            setShowAddPayment(true);
+          }}
+        >
+          <Plus className="h-4 w-4" />
+          Add Payment
+        </button>
+      )}
+    </div>
+  </Modal>
+)}
+
       {/* Add payment modal */}
       <AddPaymentModal
         open={showAddPayment}
@@ -981,7 +1099,32 @@ function AddPaymentModal({
   const [err, setErr] = useState<string | null>(null);
   const [dup, setDup] = useState<Payment | null>(null);
   const [overpay, setOverpay] = useState(false);
+useEffect(() => {
+  if (!open) return;
 
+  const month = editing?.installment_month ?? nextMonth;
+
+  setInstallmentMonth(month);
+  setAmount(
+    String(
+      editing?.amount ??
+        getOutstandingForInstallment(
+          member,
+          payments,
+          month,
+          chitti,
+          schedules
+        )
+    )
+  );
+  setPaymentDate(editing?.payment_date ?? todayISO());
+  setPaymentMode(editing?.payment_mode ?? 'upi');
+  setReference(editing?.reference_number ?? '');
+  setNote(editing?.note ?? '');
+  setErr(null);
+  setDup(null);
+  setOverpay(false);
+}, [open, editing, member, payments, chitti, schedules, nextMonth]);
   const months = getInstallmentMonths(member);
   const outstanding = getOutstanding(installmentMonth);
   const selectedIndex = months.indexOf(installmentMonth);
@@ -1180,15 +1323,24 @@ function AddPaymentModal({
       value={installmentMonth}
       onChange={(e) => handleMonthChange(e.target.value)}
     >
-      {months.map((month) => (
-        <option
-          key={month}
-          value={month}
-          className="bg-slate-900 text-white"
-        >
-          {month}
-        </option>
-      ))}
+      {months.map((month) => {
+  const [year, monthNumber] = month.split('-');
+
+  const monthName = new Date(
+    Number(year),
+    Number(monthNumber) - 1,
+    1
+  ).toLocaleDateString('en-US', {
+    month: 'short',
+    year: 'numeric',
+  });
+
+  return (
+    <option key={month} value={month}>
+      {monthName}
+    </option>
+  );
+})}
     </select>
 
     <p className="mt-1.5 text-[9px] font-medium text-slate-500">
