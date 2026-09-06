@@ -34,22 +34,33 @@ export function useAppData(selectedChittiId: string | null) {
         paymentService.list(),
       ]);
 
-      const scheduleGroups = await Promise.all(
-  c.map(async (chitti) => {
-    try {
-      return await scheduleService.list(chitti.id);
-    } catch (error) {
-      console.error(
-        `Failed to load schedule for chitti ${chitti.id}:`,
-        error
-      );
-      return [];
-    }
-  })
+      const scheduleResults = await Promise.allSettled(
+  c.map((chitti) => scheduleService.list(chitti.id))
 );
 
-const allSchedules = scheduleGroups.flat();
+const allSchedules: ChittiSchedule[] = [];
+const scheduleErrors: string[] = [];
 
+scheduleResults.forEach((result, index) => {
+  const chitti = c[index];
+
+  if (result.status === 'fulfilled') {
+    allSchedules.push(...result.value);
+  } else {
+    console.error(
+      `Failed to load schedule for chitti ${chitti.id}:`,
+      result.reason
+    );
+
+    scheduleErrors.push(
+      `Failed to load configuration for "${chitti.name}".`
+    );
+  }
+});
+
+if (scheduleErrors.length > 0) {
+  setError(scheduleErrors.join(' '));
+}
       setChittis(c);
       setMembers(m);
       setPayments(p);

@@ -184,6 +184,7 @@ export const scheduleService = {
   },
 
   async create(input: ChittiScheduleInput): Promise<ChittiSchedule> {
+    await createSafetyBackup();
     const {
       data: { user },
       error: authError,
@@ -219,6 +220,7 @@ export const scheduleService = {
     id: string,
     input: Partial<ChittiScheduleInput>
   ): Promise<ChittiSchedule> {
+    await createSafetyBackup();
     const {
       data: { user },
       error: authError,
@@ -251,6 +253,7 @@ export const scheduleService = {
   },
 
   async remove(id: string): Promise<void> {
+    await createSafetyBackup();
     const { error } = await supabase
       .from('chitti_schedule')
       .delete()
@@ -271,6 +274,8 @@ export const scheduleService = {
     rows: ChittiScheduleInput[]
   ): Promise<ChittiSchedule[]> {
     if (rows.length === 0) return [];
+
+    await createSafetyBackup();
 
     const {
       data: { user },
@@ -308,6 +313,7 @@ console.log('CREATE BULK INPUT:', rowsWithUserId);
   },
 
   async removeAll(chittiId: string): Promise<void> {
+    await createSafetyBackup();
     const { error } = await supabase
       .from('chitti_schedule')
       .delete()
@@ -328,6 +334,8 @@ console.log('CREATE BULK INPUT:', rowsWithUserId);
     rows: ChittiScheduleInput[]
   ): Promise<ChittiSchedule[]> {
     if (rows.length === 0) return [];
+
+    await createSafetyBackup();
 
     const {
       data: { user },
@@ -592,6 +600,37 @@ export const backupService = {
     };
   });
 },
+
+  async createCloudBackup(): Promise<void> {
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
+
+    if (userError || !user) {
+      throw new Error(
+        'You must be signed in before creating a cloud backup.'
+      );
+    }
+
+    const { error } = await supabase.rpc('create_chitti_backup', {
+      p_user_id: user.id,
+    });
+
+    if (error) {
+      throw new Error(
+        `Cloud backup creation failed: ${error.message}`
+      );
+    }
+
+    await logActivity(
+      'cloud_backup_created',
+      'Cloud backup created successfully',
+      {
+        user_id: user.id,
+      }
+    );
+  },
 
   async restoreCloudBackup(
     backupId: string
