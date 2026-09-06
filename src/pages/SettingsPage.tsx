@@ -191,6 +191,34 @@ const [loadingCloudBackups, setLoadingCloudBackups] = useState(true);
     }
   };
 
+    const createCloudBackup = async () => {
+    setBusy(true);
+
+    try {
+      await backupService.createCloudBackup();
+
+      const createdAt = new Date().toISOString();
+
+      localStorage.setItem('chitti_last_backup', createdAt);
+      setLastBackup(createdAt);
+
+      const updatedBackups = await backupService.listCloudBackups(30);
+      setCloudBackups(updatedBackups);
+
+      alert('Cloud backup created successfully!');
+    } catch (error) {
+      console.error('Cloud backup failed:', error);
+
+      alert(
+        error instanceof Error
+          ? error.message
+          : 'Cloud backup could not be created. Please try again.'
+      );
+    } finally {
+      setBusy(false);
+    }
+  };
+
   const formatBackupDate = (value: string) => {
     return new Intl.DateTimeFormat('en-IN', {
       dateStyle: 'medium',
@@ -409,7 +437,7 @@ const [loadingCloudBackups, setLoadingCloudBackups] = useState(true);
         )}
 
         <button
-          onClick={createFullBackup}
+          onClick={createCloudBackup}
           disabled={busy}
           className="btn-primary mt-4 w-full"
         >
@@ -447,7 +475,7 @@ const [loadingCloudBackups, setLoadingCloudBackups] = useState(true);
           </button>
 
           <button
-            onClick={createFullBackup}
+            onClick={createCloudBackup}
             disabled={busy}
             className="btn-secondary"
           >
