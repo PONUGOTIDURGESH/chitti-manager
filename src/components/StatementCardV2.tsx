@@ -115,209 +115,299 @@ export default function StatementCardV2({
   const pinchStartZoom =
     useRef(1);
 
+    const lastPinchCenter = useRef({
+  x: 0,
+  y: 0,
+});
+    const mouseDragging = useRef(false);
+
+const lastMouse = useRef({
+  x: 0,
+  y: 0,
+});
+
   // =========================================================
   // TOUCH DISTANCE
   // =========================================================
 
-  const getTouchDistance = (
-    touches: React.TouchList
-  ) => {
-    if (touches.length < 2) {
-      return 0;
+  
+
+  // =========================================================
+// RESET PAN
+// =========================================================
+
+const resetPan = () => {
+  setPan({
+    x: 0,
+    y: 0,
+  });
+};
+
+// =========================================================
+// TOUCH DISTANCE
+// =========================================================
+
+const getTouchDistance = (
+  touches: React.TouchList
+) => {
+  if (touches.length < 2) {
+    return 0;
+  }
+
+  const dx =
+    touches[0].clientX -
+    touches[1].clientX;
+
+  const dy =
+    touches[0].clientY -
+    touches[1].clientY;
+
+  return Math.sqrt(
+    dx * dx + dy * dy
+  );
+};
+
+// =========================================================
+// TOUCH START
+// =========================================================
+
+const handleTouchStart = (
+  e: TouchEvent<HTMLDivElement>
+) => {
+  // TWO FINGERS → PINCH ZOOM
+  if (e.touches.length === 2) {
+  pinchStartDistance.current =
+    getTouchDistance(e.touches);
+
+  pinchStartZoom.current = zoom;
+
+  lastPinchCenter.current = {
+    x:
+      (e.touches[0].clientX +
+        e.touches[1].clientX) /
+      2,
+
+    y:
+      (e.touches[0].clientY +
+        e.touches[1].clientY) /
+      2,
+  };
+
+  return;
+}
+
+  // ONE FINGER → PAN
+  if (
+    e.touches.length === 1 &&
+    zoom > 1
+  ) {
+    lastTouch.current = {
+      x: e.touches[0].clientX,
+      y: e.touches[0].clientY,
+    };
+  }
+};
+
+// =========================================================
+// TOUCH MOVE
+// =========================================================
+
+const handleTouchMove = (
+  e: TouchEvent<HTMLDivElement>
+) => {
+  // TWO FINGERS → PINCH ZOOM
+  if (
+  e.touches.length === 2 &&
+  pinchStartDistance.current !== null
+) {
+  e.preventDefault();
+
+  const currentDistance =
+    getTouchDistance(e.touches);
+
+  if (
+    pinchStartDistance.current <= 0
+  ) {
+    return;
+  }
+
+  const ratio =
+    currentDistance /
+    pinchStartDistance.current;
+
+  const nextZoom = Math.min(
+    3,
+    Math.max(
+      1,
+      pinchStartZoom.current * ratio
+    )
+  );
+
+  setZoom(nextZoom);
+
+  const currentCenter = {
+    x:
+      (e.touches[0].clientX +
+        e.touches[1].clientX) /
+      2,
+
+    y:
+      (e.touches[0].clientY +
+        e.touches[1].clientY) /
+      2,
+  };
+
+  const deltaX =
+    currentCenter.x -
+    lastPinchCenter.current.x;
+
+  const deltaY =
+    currentCenter.y -
+    lastPinchCenter.current.y;
+
+  const viewport =
+    viewportRef.current;
+
+  const statement =
+    statementRef.current;
+
+  if (!viewport || !statement) {
+    return;
+  }
+
+  const viewportWidth =
+    viewport.clientWidth;
+
+  const viewportHeight =
+    viewport.clientHeight;
+
+  const rect =
+    statement.getBoundingClientRect();
+
+  const maxPanX = Math.max(
+    0,
+    (rect.width - viewportWidth) / 2
+  );
+
+  const maxPanY = Math.max(
+    0,
+    rect.height - viewportHeight
+  );
+
+  setPan((current) => ({
+    x: Math.max(
+      -maxPanX,
+      Math.min(
+        maxPanX,
+        current.x + deltaX
+      )
+    ),
+
+    y: Math.max(
+      -maxPanY,
+      Math.min(
+        maxPanY,
+        current.y + deltaY
+      )
+    ),
+  }));
+
+  lastPinchCenter.current =
+    currentCenter;
+
+  return;
+}
+
+  // ONE FINGER → PAN
+  if (
+    e.touches.length === 1 &&
+    zoom > 1
+  ) {
+    e.preventDefault();
+
+    const currentX =
+      e.touches[0].clientX;
+
+    const currentY =
+      e.touches[0].clientY;
+
+    const deltaX =
+      currentX - lastTouch.current.x;
+
+    const deltaY =
+      currentY - lastTouch.current.y;
+
+    const viewport =
+      viewportRef.current;
+
+    const statement =
+      statementRef.current;
+
+    if (!viewport || !statement) {
+      return;
     }
 
-    const dx =
-      touches[0].clientX -
-      touches[1].clientX;
+    const viewportWidth =
+      viewport.clientWidth;
 
-    const dy =
-      touches[0].clientY -
-      touches[1].clientY;
+    const viewportHeight =
+      viewport.clientHeight;
 
-    return Math.sqrt(
-      dx * dx + dy * dy
+    const rect =
+      statement.getBoundingClientRect();
+
+    const maxPanX = Math.max(
+      0,
+      (rect.width - viewportWidth) / 2
     );
-  };
 
-  // =========================================================
-  // RESET PAN
-  // =========================================================
+    const maxPanY = Math.max(
+  0,
+  rect.height - viewportHeight
+);
 
-  const resetPan = () => {
-    setPan({
-      x: 0,
-      y: 0,
-    });
-  };
-
-   // =========================================================
-  // TOUCH START
-  // =========================================================
-
-  const handleTouchStart = (
-    e: TouchEvent<HTMLDivElement>
-  ) => {
-    // TWO FINGERS → PINCH ZOOM
-    if (e.touches.length === 2) {
-      pinchStartDistance.current =
-        getTouchDistance(e.touches);
-
-      pinchStartZoom.current = zoom;
-
-      return;
-    }
-
-    // ONE FINGER → PAN WHEN ZOOMED
-    if (
-      e.touches.length === 1 &&
-      zoom > 1
-    ) {
-      lastTouch.current = {
-        x: e.touches[0].clientX,
-        y: e.touches[0].clientY,
-      };
-    }
-  };
-
-  // =========================================================
-  // TOUCH MOVE
-  // =========================================================
-
-  const handleTouchMove = (
-    e: TouchEvent<HTMLDivElement>
-  ) => {
-    // =======================================================
-    // TWO FINGERS → PINCH ZOOM
-    // =======================================================
-
-    if (
-      e.touches.length === 2 &&
-      pinchStartDistance.current !== null
-    ) {
-      e.preventDefault();
-
-      const currentDistance =
-        getTouchDistance(e.touches);
-
-      if (
-        pinchStartDistance.current <= 0
-      ) {
-        return;
-      }
-
-      const ratio =
-        currentDistance /
-        pinchStartDistance.current;
-
-      const nextZoom = Math.min(
-        3,
-        Math.max(
-          1,
-          pinchStartZoom.current * ratio
+    setPan((current) => ({
+      x: Math.max(
+        -maxPanX,
+        Math.min(
+          maxPanX,
+          current.x + deltaX
         )
-      );
+      ),
 
-      setZoom(nextZoom);
+      y: Math.max(
+        -maxPanY,
+        Math.min(
+          maxPanY,
+          current.y + deltaY
+        )
+      ),
+    }));
 
-      if (nextZoom <= 1) {
-        resetPan();
-      }
+    lastTouch.current = {
+      x: currentX,
+      y: currentY,
+    };
+  }
+};
 
-      return;
-    }
+// =========================================================
+// TOUCH END
+// =========================================================
 
-    // =======================================================
-    // ONE FINGER → PAN WHEN ZOOMED
-    // =======================================================
 
-    if (
-      e.touches.length === 1 &&
-      zoom > 1
-    ) {
-      e.preventDefault();
 
-      const currentX =
-        e.touches[0].clientX;
+// =========================================================
+// DESKTOP MOUSE PAN
+// =========================================================
 
-      const currentY =
-        e.touches[0].clientY;
 
-      const deltaX =
-        currentX -
-        lastTouch.current.x;
 
-      const deltaY =
-        currentY -
-        lastTouch.current.y;
 
-      const viewport =
-        viewportRef.current;
 
-      const statement =
-        statementRef.current;
 
-      if (!viewport || !statement) {
-        return;
-      }
 
-      const viewportWidth =
-        viewport.clientWidth;
 
-      const viewportHeight =
-        viewport.clientHeight;
-
-      // Actual visual size after zoom
-      const rect =
-        statement.getBoundingClientRect();
-
-      const scaledWidth =
-        rect.width;
-
-      const scaledHeight =
-        rect.height;
-
-      // Horizontal pan boundary
-      const maxPanX = Math.max(
-        0,
-        (scaledWidth -
-          viewportWidth) / 2
-      );
-
-      // Vertical pan boundary
-      const maxPanY = Math.max(
-        0,
-        (scaledHeight -
-          viewportHeight) / 2
-      );
-
-      setPan((current) => ({
-        x: Math.max(
-          -maxPanX,
-          Math.min(
-            maxPanX,
-            current.x + deltaX
-          )
-        ),
-
-        y: Math.max(
-          -maxPanY,
-          Math.min(
-            maxPanY,
-            current.y + deltaY
-          )
-        ),
-      }));
-
-      lastTouch.current = {
-        x: currentX,
-        y: currentY,
-      };
-    }
-  };
-
-  // =========================================================
-  // TOUCH END
-  // =========================================================
 
   const handleTouchEnd = (
     e: TouchEvent<HTMLDivElement>
@@ -343,6 +433,78 @@ export default function StatementCardV2({
     }
   };
 
+  const handleMouseDown = (e: React.PointerEvent<HTMLDivElement>) => {
+  if (e.pointerType !== "mouse" || zoom <= 1) return;
+
+  mouseDragging.current = true;
+
+  lastMouse.current = {
+    x: e.clientX,
+    y: e.clientY,
+  };
+
+  e.currentTarget.setPointerCapture(e.pointerId);
+};
+
+const handleMouseMove = (e: React.PointerEvent<HTMLDivElement>) => {
+  if (
+    e.pointerType !== "mouse" ||
+    !mouseDragging.current ||
+    zoom <= 1
+  ) {
+    return;
+  }
+
+  const deltaX = e.clientX - lastMouse.current.x;
+  const deltaY = e.clientY - lastMouse.current.y;
+
+  const viewport = viewportRef.current;
+  const statement = statementRef.current;
+
+  if (!viewport || !statement) return;
+
+  const viewportWidth = viewport.clientWidth;
+  const viewportHeight = viewport.clientHeight;
+
+  const rect = statement.getBoundingClientRect();
+
+  const maxPanX = Math.max(
+    0,
+    (rect.width - viewportWidth) / 2
+  );
+
+  const maxPanY = Math.max(
+  0,
+  rect.height - viewportHeight
+);
+
+  setPan((current) => ({
+    x: Math.max(
+      -maxPanX,
+      Math.min(maxPanX, current.x + deltaX)
+    ),
+    y: Math.max(
+      -maxPanY,
+      Math.min(maxPanY, current.y + deltaY)
+    ),
+  }));
+
+  lastMouse.current = {
+    x: e.clientX,
+    y: e.clientY,
+  };
+};
+
+const handleMouseUp = (e: React.PointerEvent<HTMLDivElement>) => {
+  if (e.pointerType !== "mouse") return;
+
+  mouseDragging.current = false;
+
+  if (e.currentTarget.hasPointerCapture(e.pointerId)) {
+    e.currentTarget.releasePointerCapture(e.pointerId);
+  }
+};
+
   // =========================================================
   // RESPONSIVE A4 WIDTH
   // =========================================================
@@ -354,7 +516,11 @@ export default function StatementCardV2({
 
       <div
   ref={viewportRef}
-  className="relative w-full bg-slate-300/70 px-2 py-2"
+  onPointerDown={handleMouseDown}
+  onPointerMove={handleMouseMove}
+  onPointerUp={handleMouseUp}
+  onPointerCancel={handleMouseUp}
+  className="relative w-full select-none bg-slate-300/70 px-2 py-2"
   style={{
   height:
     "min(520px, calc(100dvh - 300px))",
@@ -386,10 +552,12 @@ export default function StatementCardV2({
             =================================================== */}
 
         <div
-  className="flex w-full justify-center"
+  className="flex w-full cursor-grab justify-center"
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
+
+  
           style={{
             transform:
               `translate(${pan.x}px, ${pan.y}px)`,
@@ -503,7 +671,7 @@ export default function StatementCardV2({
           ACTION BAR
           ===================================================== */}
 
-      <div className="mt-24 border-t border-slate-800 bg-slate-950 px-3 py-4">
+      <div className="mt-0 border-t border-slate-800 bg-slate-950 px-3 py-4">
   <ShareButtons
     targetRef={statementRef}
     filename={`${member.full_name}-statement`}

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Search,
+  Layers3,
   SlidersHorizontal,
   Plus,
    Pencil,
@@ -116,6 +117,10 @@ export function MembersPage({
     selectedChittiId,
   } = useChitti();
 const isMobile = useIsMobile();
+
+const [memberChittiFilter, setMemberChittiFilter] =
+  useState<string>('all');
+
   const [query, setQuery] =
     useState('');
 
@@ -228,6 +233,14 @@ const isMobile = useIsMobile();
 
   const filtered = useMemo(() => {
     let list = enriched;
+
+        // CHITTI FILTER
+    if (memberChittiFilter !== 'all') {
+      list = list.filter(
+        (item) =>
+          item.member.chitti_id === memberChittiFilter
+      );
+    }
 
     // SEARCH
     if (query.trim()) {
@@ -437,12 +450,13 @@ if (statementFilter === 'unsent') {
 
     return sorted;
   }, [
-    enriched,
-    query,
-    filter,
-    sort,
-    statementFilter,
-  ]);
+  enriched,
+  query,
+  filter,
+  sort,
+  statementFilter,
+  memberChittiFilter,
+]);
 
     // ====================================================
   // DASHBOARD SUMMARY
@@ -556,6 +570,38 @@ if (error) {
         </button>
 
       </div>
+
+
+      {/* ================================================= */}
+{/* CHITTI FILTER */}
+{/* ================================================= */}
+
+<div className="relative">
+  <Layers3 className="pointer-events-none absolute left-4 top-1/2 z-10 h-4 w-4 -translate-y-1/2 text-blue-500" />
+
+  <select
+    value={memberChittiFilter}
+    onChange={(e) =>
+      setMemberChittiFilter(e.target.value)
+    }
+    className="w-full appearance-none rounded-2xl border border-slate-700 bg-slate-900 px-10 py-3 text-sm font-semibold text-slate-200 outline-none transition hover:border-slate-600 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10"
+  >
+    <option value="all">
+      All chittis
+    </option>
+
+    {chittis.map((chitti) => (
+      <option
+        key={chitti.id}
+        value={chitti.id}
+      >
+        {chitti.name}
+      </option>
+    ))}
+  </select>
+
+  <ChevronRight className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 rotate-90 text-slate-500" />
+</div>
 
 
       {/* ================================================= */}

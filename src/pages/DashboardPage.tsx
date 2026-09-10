@@ -11,7 +11,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useRouter } from '@/hooks/useRouter';
 import type { useAppData } from '@/hooks/useAppData';
 import { ChittiSelector } from '@/components/ChittiSelector';
-
+import BrandLogo from '@/components/BrandLogo';
 interface Props {
   appData: ReturnType<typeof useAppData>;
   selectedChittiId: string | null;
@@ -140,6 +140,7 @@ if (!selectedChitti && finance.totalExpected > 0) {
         <SkeletonCard />
         <SkeletonCard />
         <SkeletonCard />
+        
       </div>
     );
   }
@@ -150,6 +151,7 @@ if (!selectedChitti && finance.totalExpected > 0) {
 
   if (chittis.length === 0) {
     return (
+      
       <EmptyState
         icon={Wallet}
         title="Welcome to Chitti Manager"
@@ -164,7 +166,9 @@ if (!selectedChitti && finance.totalExpected > 0) {
   }
 
   return (
-  <div className="space-y-4 pb-6">
+   <div className="space-y-4 pb-6">
+    
+    
 
     {/* ================================================= */}
     {/* HEADER */}
@@ -173,18 +177,26 @@ if (!selectedChitti && finance.totalExpected > 0) {
     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
 
       <div>
-        <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-brand-400">
-          Overview
-        </p>
+  <div className="flex items-center gap-2">
+    <BrandLogo
+      variant="seal"
+      showText={false}
+      className="shrink-0"
+    />
 
-        <h1 className="mt-0.5 text-2xl font-bold tracking-tight text-white">
-          {getGreeting()}
-        </h1>
+    <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-brand-400">
+      Overview
+    </p>
+  </div>
 
-        <p className="mt-0.5 text-xs text-slate-500">
-          Track collections, payments and member activity.
-        </p>
-      </div>
+  <h1 className="mt-1 text-2xl font-bold tracking-tight text-white">
+    {getGreeting()}
+  </h1>
+
+  <p className="mt-0.5 text-xs text-slate-500">
+    Track collections, payments and member activity.
+  </p>
+</div>
 
       <div className="w-full sm:w-auto">
         <ChittiSelector

@@ -1069,13 +1069,21 @@ function AddPaymentModal({
   editing?: Payment;
   onSaved: () => void;
 }) {
-  const nextMonth =
-    editing?.installment_month ??
-    getNextUnpaidInstallmentMonth(member, payments, chitti, schedules) ??
-    currentMonthStr();
+  const lastPaymentMonth =
+  payments
+    .filter((p) => p.member_id === member.id && !p.reversed)
+    .sort((a, b) =>
+      String(b.payment_date).localeCompare(String(a.payment_date))
+    )[0]?.installment_month;
+
+const nextMonth =
+  editing?.installment_month ??
+  lastPaymentMonth ??
+  getNextUnpaidInstallmentMonth(member, payments, chitti, schedules) ??
+  currentMonthStr();
 
   const [memberId] = useState(member.id);
-  const [installmentMonth, setInstallmentMonth] = useState(nextMonth);
+const [installmentMonth, setInstallmentMonth] = useState(nextMonth);
 
   const getOutstanding = (month: string) =>
   getOutstandingForInstallment(
@@ -1174,9 +1182,9 @@ useEffect(() => {
       };
 
       if (editing) await paymentService.update(editing.id, payload);
-      else await paymentService.create(payload);
+else await paymentService.create(payload);
 
-      onSaved();
+onSaved();
     } catch (e) {
       setErr(e instanceof Error ? e.message : 'Failed to save payment');
     } finally {

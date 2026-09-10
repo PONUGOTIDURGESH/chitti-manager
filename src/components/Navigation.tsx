@@ -2,7 +2,7 @@ import { LayoutDashboard, Users, Wallet, Settings, Menu, LogOut, Layers, CircleD
 import { useRouter, type Route } from '@/hooks/useRouter';
 import { useAuth } from '@/hooks/useAuth';
 import { motion } from 'framer-motion';
-
+import BrandLogo from '@/components/BrandLogo';
 const navItems: { name: Route['name']; label: string; icon: typeof LayoutDashboard }[] = [
   { name: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { name: 'chittis', label: 'Chittis', icon: Layers },
@@ -59,12 +59,18 @@ export function Sidebar() {
   const { user, signOut } = useAuth();
   return (
     <aside className="sticky top-0 hidden h-screen w-72 shrink-0 flex-col border-r border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-950 lg:flex">
-      <div className="flex items-center gap-2 px-2 py-3">
-        <div className="grid h-11 w-11 place-items-center rounded-2xl bg-brand-600 text-white">
-          <Wallet className="h-6 w-6" />
-        </div>
-        <span className="text-lg font-bold text-slate-900 dark:text-white">Chitti Manager</span>
-      </div>
+      <div className="relative mb-2 overflow-hidden rounded-2xl border border-slate-200/80 bg-gradient-to-br from-white via-white to-slate-50 px-3 py-3 shadow-sm dark:border-slate-800 dark:from-slate-950 dark:via-slate-950 dark:to-slate-900">
+  <div className="absolute -right-8 -top-8 h-20 w-20 rounded-full bg-brand-500/10 blur-2xl" />
+
+  <BrandLogo variant="sidebar" />
+
+  <div className="mt-2 flex items-center gap-2 px-1">
+    <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+    <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400">
+      Chitti Management
+    </span>
+  </div>
+</div>
       <nav className="mt-4 flex flex-col gap-1">
         {navItems.map((item) => {
           const active = route.name === item.name;
@@ -106,14 +112,36 @@ export function MobileHeader({ title, onMenu }: { title: string; onMenu?: () => 
   const { signOut } = useAuth();
   return (
     <header className="sticky top-0 z-20 flex items-center justify-between border-b border-slate-200 bg-white px-4 py-4 pt-safe backdrop-blur-lg dark:border-slate-800 dark:bg-slate-950 lg:hidden">
-      <div className="flex items-center gap-2">
-        {onMenu && (
-          <button onClick={onMenu} className="grid h-8 w-8 place-items-center rounded-lg text-slate-500">
-            <Menu className="h-6 w-6" />
-          </button>
-        )}
-        <h1 className="text-lg font-bold text-slate-900 dark:text-white">{title}</h1>
+      <div className="flex min-w-0 items-center gap-2.5">
+  {onMenu && (
+    <button
+      onClick={onMenu}
+      className="grid h-9 w-9 shrink-0 place-items-center rounded-xl text-slate-500 transition hover:bg-slate-100 dark:hover:bg-slate-800"
+    >
+      <Menu className="h-5 w-5" />
+    </button>
+  )}
+
+  <div className="flex min-w-0 items-center gap-2">
+    <div className="relative shrink-0">
+      <img
+        src="/logo.png"
+        alt="Chitti Manager"
+        className="h-9 w-9 rounded-xl object-contain"
+      />
+      <span className="absolute -bottom-0.5 -right-0.5 h-2 w-2 rounded-full border-2 border-white bg-emerald-500 dark:border-slate-950" />
+    </div>
+
+    <div className="min-w-0">
+      <div className="truncate text-[10px] font-bold uppercase tracking-[0.18em] text-brand-500">
+        Chitti Manager
       </div>
+      <h1 className="truncate text-base font-bold leading-tight text-slate-900 dark:text-white">
+        {title}
+      </h1>
+    </div>
+  </div>
+</div>
       <button onClick={signOut} className="grid h-10 w-10 place-items-center rounded-lg text-slate-500">
         <LogOut className="h-6 w-6" />
       </button>
