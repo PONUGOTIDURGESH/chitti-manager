@@ -1625,37 +1625,47 @@ const finance = computeChittiFinance(
 
   {/* FINANCIAL SUMMARY */}
 
-  <div className="flex items-center justify-between gap-4 px-4 py-3">
+<div className="grid grid-cols-3 border-t border-slate-800/70">
 
-    <div>
+  {/* EXPECTED */}
+  <div className="px-4 py-3">
+    <p className="text-[10px] uppercase tracking-wide text-slate-500">
+      Expected
+    </p>
 
-      <p className="text-[10px] uppercase tracking-wide text-slate-500">
-        Collected
-      </p>
-
-      <p className="mt-0.5 text-sm font-bold text-emerald-400">
-        {formatMoney(finance.currentMonthCollected)}
-      </p>
-
-    </div>
-
-
-    <div className="h-8 w-px bg-slate-800" />
-
-
-    <div className="text-right">
-
-      <p className="text-[10px] uppercase tracking-wide text-slate-500">
-        Balance
-      </p>
-
-      <p className="mt-0.5 text-sm font-bold text-amber-400">
-        {formatMoney(finance.currentMonthBalance)}
-      </p>
-
-    </div>
-
+    <p className="mt-0.5 text-sm font-bold text-blue-400">
+      {formatMoney(
+        finance.currentMonthCollected +
+        finance.currentMonthBalance
+      )}
+    </p>
   </div>
+
+
+  {/* COLLECTED */}
+  <div className="border-l border-slate-800 px-4 py-3">
+    <p className="text-[10px] uppercase tracking-wide text-slate-500">
+      Collected
+    </p>
+
+    <p className="mt-0.5 text-sm font-bold text-emerald-400">
+      {formatMoney(finance.currentMonthCollected)}
+    </p>
+  </div>
+
+
+  {/* BALANCE */}
+  <div className="border-l border-slate-800 px-4 py-3">
+    <p className="text-[10px] uppercase tracking-wide text-slate-500">
+      Balance
+    </p>
+
+    <p className="mt-0.5 text-sm font-bold text-amber-400">
+      {formatMoney(finance.currentMonthBalance)}
+    </p>
+  </div>
+
+</div>
 
 
   {/* ACTIONS */}

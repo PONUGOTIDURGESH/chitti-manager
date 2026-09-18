@@ -90,6 +90,10 @@ export function MonthlyCollectionPage({
   const [sort, setSort] =
     useState<Sort>('default');
 
+    const [selectedMonth, setSelectedMonth] = useState(
+  getMonthKey(new Date())
+);
+
   const [savingMemberId, setSavingMemberId] =
     useState<string | null>(null);
 
@@ -98,9 +102,14 @@ export function MonthlyCollectionPage({
 
   const currentDate = new Date();
 
-  const monthKey = getMonthKey(currentDate);
+  const monthKey = selectedMonth; 
 
-  const monthLabel = getMonthLabel(currentDate);
+  const monthLabel = new Date(
+  `${selectedMonth}-01T00:00:00`
+).toLocaleDateString('en-IN', {
+  month: 'long',
+  year: 'numeric',
+});
 
   // =========================================================
   // COLLECTION DATA
@@ -127,16 +136,19 @@ export function MonthlyCollectionPage({
 
         let currentMonthNumber = 1;
 
-        if (member.start_date) {
-          const difference =
-            getMonthDifference(
-              member.start_date,
-              currentDate
-            );
+if (member.start_date) {
+  const selectedDate = new Date(
+    `${selectedMonth}-01T00:00:00`
+  );
 
-          currentMonthNumber =
-            difference + 1;
-        }
+  const difference =
+    getMonthDifference(
+      member.start_date,
+      selectedDate
+    );
+
+  currentMonthNumber = difference + 1;
+}
 
         const currentSchedule =
           schedules.find(
@@ -168,19 +180,18 @@ export function MonthlyCollectionPage({
 
         let expectedAmount = 0;
 
-        if (
-          hasStarted &&
-          !scheduleFinished &&
-          currentSchedule
-        ) {
-          expectedAmount = member.is_lifted
-            ? Number(
-                currentSchedule.after_lifting_amount
-              )
-            : Number(
-                currentSchedule.before_lifting_amount
-              );
-        }
+if (
+  hasStarted &&
+  !scheduleFinished &&
+  currentSchedule
+) {
+  const baseAmount = member.is_lifted
+    ? Number(currentSchedule.after_lifting_amount)
+    : Number(currentSchedule.before_lifting_amount);
+
+  expectedAmount =
+    baseAmount * Number(member.units ?? 1);
+}
 
         // -----------------------------------------------
         // Current month's payments
@@ -197,9 +208,9 @@ export function MonthlyCollectionPage({
             }
 
             return (
-              payment.payment_date?.slice(0, 7) ===
-              monthKey
-            );
+  payment.installment_month ===
+  monthKey
+);
           });
 
         const paidAmount =
@@ -492,6 +503,33 @@ export function MonthlyCollectionPage({
     <p className="mt-0.5 text-xs text-slate-500">
       Record this month's member collections.
     </p>
+
+    <select
+  className="mt-2 h-10 w-full max-w-xs rounded-xl border border-slate-700 bg-slate-800 px-4 text-sm font-semibold text-white outline-none transition focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20"
+  value={selectedMonth}
+  onChange={(e) => setSelectedMonth(e.target.value)}
+>
+  {Array.from({ length: 12 }, (_, index) => {
+    const date = new Date(
+      currentDate.getFullYear(),
+      currentDate.getMonth() - index,
+      1
+    );
+
+    const value = getMonthKey(date);
+
+    return (
+      <option key={value} value={value}>
+        {date.toLocaleDateString('en-IN', {
+          month: 'long',
+          year: 'numeric',
+        })}
+      </option>
+    );
+  })}
+</select>
+
+
   </div>
 </div>
 
