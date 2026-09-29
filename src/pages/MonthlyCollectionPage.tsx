@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   CheckCircle2,
   CircleDollarSign,
@@ -11,8 +11,9 @@ import {
 import { Avatar } from '@/components/Avatar';
 import { EmptyState, ErrorState, SkeletonCard } from '@/components/States';
 import { formatMoney } from '@/lib/format';
-import { paymentService } from '@/lib/services';
-
+import { getInstallmentRows } from '@/lib/finance';
+import { paymentService, memberLiftService } from '@/lib/services';
+import type { MemberLift } from '@/types';
 import type { useAppData } from '@/hooks/useAppData';
 import type { Payment } from '@/types';
 
@@ -74,13 +75,14 @@ export function MonthlyCollectionPage({
   appData,
 }: Props) {
   const {
-    members,
-    payments,
-    allSchedules,
-    loading,
-    error,
-    refresh,
-  } = appData;
+  members,
+  payments,
+  chittis,
+  allSchedules,
+  loading,
+  error,
+  refresh,
+} = appData;
 
   const [query, setQuery] = useState('');
 
@@ -94,11 +96,44 @@ export function MonthlyCollectionPage({
   getMonthKey(new Date())
 );
 
+const [memberLifts, setMemberLifts] = useState<
+  Record<string, MemberLift[]>
+>({});
   const [savingMemberId, setSavingMemberId] =
     useState<string | null>(null);
 
   const [amountInputs, setAmountInputs] =
     useState<Record<string, string>>({});
+
+    useEffect(() => {
+  let cancelled = false;
+
+  const loadLifts = async () => {
+    const results = await Promise.all(
+      members.map(async (member) => {
+        try {
+          const lifts = await memberLiftService.list(member.id);
+
+          return [member.id, lifts] as const;
+        } catch {
+          return [member.id, []] as const;
+        }
+      })
+    );
+
+    if (!cancelled) {
+      setMemberLifts(Object.fromEntries(results));
+    }
+  };
+
+  if (members.length > 0) {
+    loadLifts();
+  }
+
+  return () => {
+    cancelled = true;
+  };
+}, [members]);
 
   const currentDate = new Date();
 
@@ -117,8 +152,25 @@ export function MonthlyCollectionPage({
 
   const collection = useMemo(() => {
     return members
-      .filter((member) => !member.archived)
-      .map((member) => {
+  .filter((member) => {
+    if (member.archived) return false;
+
+    if (!member.start_date) return false;
+
+    const selectedDate = new Date(
+      `${selectedMonth}-01T00:00:00`
+    );
+
+    const startDate = new Date(
+      `${member.start_date}T00:00:00`
+    );
+
+    // Member hasn't started by the selected month
+    if (startDate > selectedDate) return false;
+
+    return true;
+  })
+  .map((member) => {
         const schedules = allSchedules
           .filter(
             (schedule) =>
@@ -161,12 +213,16 @@ if (member.start_date) {
         // If the member has not started yet, expected = 0
         // -----------------------------------------------
 
-        const hasStarted =
-          member.start_date
-            ? new Date(
-                `${member.start_date}T00:00:00`
-              ) <= currentDate
-            : false;
+        const selectedDate = new Date(
+  `${selectedMonth}-01T00:00:00`
+);
+
+const hasStarted =
+  member.start_date
+    ? new Date(
+        `${member.start_date}T00:00:00`
+      ) <= selectedDate
+    : false;
 
         // -----------------------------------------------
         // If schedule is complete, don't invent another
@@ -185,12 +241,27 @@ if (
   !scheduleFinished &&
   currentSchedule
 ) {
-  const baseAmount = member.is_lifted
-    ? Number(currentSchedule.after_lifting_amount)
-    : Number(currentSchedule.before_lifting_amount);
+  const chitti = chittis.find(
+    (c) => c.id === member.chitti_id
+  );
+
+  const memberInstallments =
+    getInstallmentRows(
+      member,
+      payments,
+      chitti,
+      schedules,
+      memberLifts[member.id] ?? []
+    );
+
+  const selectedRow =
+    memberInstallments.find(
+      (row) =>
+        row.dueDate?.startsWith(monthKey)
+    );
 
   expectedAmount =
-    baseAmount * Number(member.units ?? 1);
+    selectedRow?.amountDue ?? 0;
 }
 
         // -----------------------------------------------
@@ -243,6 +314,7 @@ if (
     payments,
     allSchedules,
     monthKey,
+     memberLifts,
   ]);
 
   // =========================================================
@@ -250,27 +322,34 @@ if (
   // =========================================================
 
   const totals = useMemo(() => {
-    const expected = collection.reduce(
-      (total, item) =>
-        total + item.expectedAmount,
-      0
-    );
+  const expected = collection.reduce(
+    (total, item) =>
+      total + item.expectedAmount,
+    0
+  );
 
-    const collected = collection.reduce(
-      (total, item) =>
-        total + item.paidAmount,
-      0
-    );
+  const collected = collection.reduce(
+    (total, item) =>
+      total + item.paidAmount,
+    0
+  );
 
-    return {
-      expected,
-      collected,
-      pending: Math.max(
-        expected - collected,
+  const pending = collection.reduce(
+    (total, item) =>
+      total +
+      Math.max(
+        item.expectedAmount - item.paidAmount,
         0
       ),
-    };
-  }, [collection]);
+    0
+  );
+
+  return {
+    expected,
+    collected,
+    pending,
+  };
+}, [collection]);
 
   // =========================================================
   // FILTER + SORT
