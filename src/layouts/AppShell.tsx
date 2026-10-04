@@ -26,6 +26,12 @@ const titles: Record<string, string> = {
 export function AppShell() {
   const { route } = useRouter();
   const [selectedChittiId, setSelectedChittiId] = useState<string | null>(null);
+
+  const [selectedMonth, setSelectedMonth] = useState(
+  new Date().toISOString().slice(0, 7)
+);
+
+
   const appData = useAppData(selectedChittiId);
 
   let page: ReactNode;
@@ -43,7 +49,13 @@ export function AppShell() {
       page = <PaymentsPage appData={appData} />;
       break;
     case 'monthly_collection':
-  page = <MonthlyCollectionPage appData={appData} />;
+  page = (
+  <MonthlyCollectionPage
+    appData={appData}
+    selectedMonth={selectedMonth}
+    setSelectedMonth={setSelectedMonth}
+  />
+);
   break;
     case 'settings':
       page = <SettingsPage appData={appData} />;

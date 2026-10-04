@@ -17,6 +17,7 @@ export type MemberStatus =
 export interface InstallmentRow {
   index: number;
   monthLabel: string;
+  installmentMonth: string;
   dueDate: string;
 
   // Amount member can receive if chitti is lifted in this month
@@ -46,9 +47,10 @@ export interface ChittiFinance {
   totalExpected: number;
   totalCollected: number;
   remainingBalance: number;
-  
+
+  currentMonthExpected: number;
   currentMonthCollected: number;
-currentMonthBalance: number;
+  currentMonthBalance: number;
 
   collectionPercentage: number;
   totalMembers: number;
@@ -229,8 +231,9 @@ const amountDue =
   }
 
   return {
-    index: index + 1,
-    monthLabel: getInstallmentMonthLabel(month),
+  index: index + 1,
+  installmentMonth: month,
+  monthLabel: getInstallmentMonthLabel(month),
 
     dueDate: getDueDateForMonth(
   month,
@@ -398,7 +401,9 @@ export function computeChittiFinance(
   members: Member[],
   payments: Payment[],
   chitti?: Chitti,
-  schedules: ChittiSchedule[] = []
+  schedules: ChittiSchedule[] = [],
+  memberLifts: Record<string, MemberLift[]> = {},
+  monthKey?: string
 ): ChittiFinance {
   let totalExpected = 0;
   let totalCollected = 0;
@@ -406,36 +411,47 @@ export function computeChittiFinance(
   let pendingCount = 0;
   let completedCount = 0;
 
-  let currentMonthCollected = 0;
+  let currentMonthExpected = 0;
+let currentMonthCollected = 0;
 let currentMonthBalance = 0;
 
   for (const member of members) {
     if (member.archived) continue;
 
-    const finance = computeMemberFinance(
-      member,
-      payments,
-      chitti,
-      schedules
-    );
-    const memberRows = getInstallmentRows(
+    const lifts = memberLifts[member.id] ?? [];
+
+const finance = computeMemberFinance(
   member,
   payments,
   chitti,
-  schedules
+  schedules,
+  lifts
 );
 
-const now = new Date();
+const memberRows = getInstallmentRows(
+  member,
+  payments,
+  chitti,
+  schedules,
+  lifts
+);
 
-const currentMonth = `${now.getFullYear()}-${String(
-  now.getMonth() + 1
-).padStart(2, '0')}`;
+const currentMonth =
+  monthKey ??
+  (() => {
+    const now = new Date();
+
+    return `${now.getFullYear()}-${String(
+      now.getMonth() + 1
+    ).padStart(2, '0')}`;
+  })();
 
 const currentRow = memberRows.find(
-  (row) => row.dueDate?.startsWith(currentMonth)
+  (row) => row.installmentMonth === currentMonth
 );
 
 if (currentRow) {
+  currentMonthExpected += currentRow.amountDue;
   currentMonthCollected += currentRow.amountPaid;
   currentMonthBalance += Math.max(
     0,
@@ -487,6 +503,8 @@ if (currentRow) {
     currentMonthCollected,
 currentMonthBalance,
     collectionPercentage,
+    currentMonthExpected,
+
 
     totalMembers: members.filter(
       (member) => !member.archived

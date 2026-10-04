@@ -29,6 +29,7 @@ import {
 import {
   chittiService,
   scheduleService,
+  memberLiftService,
 } from '@/lib/services';
 
 import { computeChittiFinance } from '@/lib/finance';
@@ -43,6 +44,7 @@ import type {
   Chitti,
   ChittiStatus,
   ChittiScheduleInput,
+  MemberLift,
 } from '@/types';
 
 import type { useAppData } from '@/hooks/useAppData';
@@ -146,6 +148,7 @@ export function ChittisPage({
   appData,
   selectedChittiId,
   setSelectedChittiId,
+
 }: Props) {
   const { navigate } = useRouter();
 
@@ -177,6 +180,41 @@ export function ChittisPage({
 
   const [busy, setBusy] =
     useState(false);
+
+    const [memberLifts, setMemberLifts] = useState<
+  Record<string, MemberLift[]>
+>({});
+
+useEffect(() => {
+  let cancelled = false;
+
+  const loadLifts = async () => {
+    const results = await Promise.all(
+      members.map(async (member) => {
+        try {
+          const lifts = await memberLiftService.list(member.id);
+          return [member.id, lifts] as const;
+        } catch {
+          return [member.id, []] as const;
+        }
+      })
+    );
+
+    if (!cancelled) {
+      setMemberLifts(Object.fromEntries(results));
+    }
+  };
+
+  if (members.length > 0) {
+    loadLifts();
+  } else {
+    setMemberLifts({});
+  }
+
+  return () => {
+    cancelled = true;
+  };
+}, [members]);
 
   const [
     formError,
@@ -1357,6 +1395,66 @@ const editDuration =
     }
   };
 
+
+    // ====================================================
+  // TOTAL FINANCIAL SUMMARY — ALL CHITTIS
+  // ====================================================
+
+  const totalFinance = chittis.reduce(
+    (totals, chitti) => {
+      const chittiSchedules =
+        allSchedules
+          .filter(
+            (schedule) =>
+              schedule.chitti_id === chitti.id
+          )
+          .sort(
+            (a, b) =>
+              a.month_number -
+              b.month_number
+          );
+
+      const chittiMembers =
+        members.filter(
+          (member) =>
+            member.chitti_id === chitti.id
+        );
+
+      const finance =
+        computeChittiFinance(
+          chittiMembers,
+          payments,
+          chitti,
+          chittiSchedules,
+          Object.fromEntries(
+            chittiMembers.map((member) => [
+              member.id,
+              memberLifts[member.id] ?? [],
+            ])
+          )
+        );
+
+      return {
+        expected:
+          totals.expected +
+          finance.currentMonthExpected,
+
+        collected:
+          totals.collected +
+          finance.currentMonthCollected,
+
+        balance:
+          totals.balance +
+          finance.currentMonthBalance,
+      };
+    },
+    {
+      expected: 0,
+      collected: 0,
+      balance: 0,
+    }
+  );
+
   // ====================================================
   // LOADING / ERROR
   // ====================================================
@@ -1474,7 +1572,13 @@ const finance = computeChittiFinance(
   chittiMembers,
   payments,
   chitti,
-  chittiSchedules
+  chittiSchedules,
+  Object.fromEntries(
+    chittiMembers.map((member) => [
+      member.id,
+      memberLifts[member.id] ?? [],
+    ])
+  )
 );
 
               const firstSchedule =
@@ -1634,10 +1738,7 @@ const finance = computeChittiFinance(
     </p>
 
     <p className="mt-0.5 text-sm font-bold text-blue-400">
-      {formatMoney(
-        finance.currentMonthCollected +
-        finance.currentMonthBalance
-      )}
+      {formatMoney(finance.currentMonthExpected)}
     </p>
   </div>
 
@@ -1724,6 +1825,63 @@ const finance = computeChittiFinance(
               );
             }
           )}
+        </div>
+      )}
+
+
+            {/* ================================================= */}
+      {/* TOTAL FINANCIAL SUMMARY */}
+      {/* ================================================= */}
+
+      {chittis.length > 0 && (
+        <div className="overflow-hidden rounded-2xl border border-slate-800/80 bg-slate-900/60 shadow-sm">
+          
+          <div className="border-b border-slate-800/70 px-4 py-3">
+            <h3 className="text-sm font-bold text-slate-100">
+              Total — All Chittis
+            </h3>
+
+            <p className="mt-0.5 text-[11px] text-slate-500">
+              Combined financial summary of all chittis.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-3">
+            
+            {/* TOTAL EXPECTED */}
+            <div className="px-4 py-4">
+              <p className="text-[10px] font-medium uppercase tracking-wide text-slate-500">
+                Total Expected
+              </p>
+
+              <p className="mt-1 text-base font-bold text-blue-400">
+                {formatMoney(totalFinance.expected)}
+              </p>
+            </div>
+
+            {/* TOTAL COLLECTED */}
+            <div className="border-l border-slate-800 px-4 py-4">
+              <p className="text-[10px] font-medium uppercase tracking-wide text-slate-500">
+                Total Collected
+              </p>
+
+              <p className="mt-1 text-base font-bold text-emerald-400">
+                {formatMoney(totalFinance.collected)}
+              </p>
+            </div>
+
+            {/* TOTAL BALANCE */}
+            <div className="border-l border-slate-800 px-4 py-4">
+              <p className="text-[10px] font-medium uppercase tracking-wide text-slate-500">
+                Total Balance
+              </p>
+
+              <p className="mt-1 text-base font-bold text-amber-400">
+                {formatMoney(totalFinance.balance)}
+              </p>
+            </div>
+
+          </div>
         </div>
       )}
 

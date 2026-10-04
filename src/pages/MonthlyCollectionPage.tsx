@@ -11,7 +11,10 @@ import {
 import { Avatar } from '@/components/Avatar';
 import { EmptyState, ErrorState, SkeletonCard } from '@/components/States';
 import { formatMoney } from '@/lib/format';
-import { getInstallmentRows } from '@/lib/finance';
+import {
+  getInstallmentRows,
+  computeChittiFinance,
+} from '@/lib/finance';
 import { paymentService, memberLiftService } from '@/lib/services';
 import type { MemberLift } from '@/types';
 import type { useAppData } from '@/hooks/useAppData';
@@ -19,6 +22,8 @@ import type { Payment } from '@/types';
 
 interface Props {
   appData: ReturnType<typeof useAppData>;
+  selectedMonth: string;
+  setSelectedMonth: (month: string) => void;
 }
 
 type Status = 'completed' | 'partial' | 'unpaid';
@@ -73,6 +78,8 @@ function getStatus(
 
 export function MonthlyCollectionPage({
   appData,
+  selectedMonth,
+  setSelectedMonth,
 }: Props) {
   const {
   members,
@@ -92,9 +99,7 @@ export function MonthlyCollectionPage({
   const [sort, setSort] =
     useState<Sort>('default');
 
-    const [selectedMonth, setSelectedMonth] = useState(
-  getMonthKey(new Date())
-);
+    
 
 const [memberLifts, setMemberLifts] = useState<
   Record<string, MemberLift[]>
@@ -186,28 +191,7 @@ const [memberLifts, setMemberLifts] = useState<
         // based on their starting date.
         // -----------------------------------------------
 
-        let currentMonthNumber = 1;
-
-if (member.start_date) {
-  const selectedDate = new Date(
-    `${selectedMonth}-01T00:00:00`
-  );
-
-  const difference =
-    getMonthDifference(
-      member.start_date,
-      selectedDate
-    );
-
-  currentMonthNumber = difference + 1;
-}
-
-        const currentSchedule =
-          schedules.find(
-            (schedule) =>
-              schedule.month_number ===
-              currentMonthNumber
-          );
+        
 
         // -----------------------------------------------
         // If the member has not started yet, expected = 0
@@ -229,40 +213,35 @@ const hasStarted =
         // monthly installment.
         // -----------------------------------------------
 
-        const scheduleFinished =
-          schedules.length > 0 &&
-          currentMonthNumber >
-            schedules.length;
+        
 
-        let expectedAmount = 0;
+        const chitti = chittis.find(
+  (c) => c.id === member.chitti_id
+);
 
-if (
-  hasStarted &&
-  !scheduleFinished &&
-  currentSchedule
-) {
-  const chitti = chittis.find(
-    (c) => c.id === member.chitti_id
-  );
+const memberInstallments = getInstallmentRows(
+  member,
+  payments,
+  chitti,
+  schedules,
+  memberLifts[member.id] ?? []
+);
 
-  const memberInstallments =
-    getInstallmentRows(
-      member,
-      payments,
-      chitti,
-      schedules,
-      memberLifts[member.id] ?? []
-    );
+const selectedRow = memberInstallments.find(
+  (row) =>
+    row.installmentMonth === monthKey
+);
 
-  const selectedRow =
-    memberInstallments.find(
-      (row) =>
-        row.dueDate?.startsWith(monthKey)
-    );
+const expectedAmount =
+  selectedRow?.amountDue ?? 0;
 
-  expectedAmount =
-    selectedRow?.amountDue ?? 0;
-}
+const currentMonthNumber =
+  selectedRow?.index ?? 0;
+
+  const scheduleFinished =
+  schedules.length > 0 &&
+  currentMonthNumber >
+    schedules.length;
 
         // -----------------------------------------------
         // Current month's payments
@@ -299,7 +278,6 @@ if (
         return {
           member,
           schedules,
-          currentSchedule,
           currentMonthNumber,
           expectedAmount,
           paidAmount,
@@ -317,39 +295,76 @@ if (
      memberLifts,
   ]);
 
-  // =========================================================
-  // TOTALS
-  // =========================================================
+ // =========================================================
+// TOTALS — SAME CALCULATION AS CHITTIS PAGE
+// =========================================================
 
-  const totals = useMemo(() => {
-  const expected = collection.reduce(
-    (total, item) =>
-      total + item.expectedAmount,
-    0
+const totals = useMemo(() => {
+  return chittis.reduce(
+    (totals, chitti) => {
+      const chittiSchedules =
+        allSchedules
+          .filter(
+            (schedule) =>
+              schedule.chitti_id === chitti.id
+          )
+          .sort(
+            (a, b) =>
+              a.month_number -
+              b.month_number
+          );
+
+      const chittiMembers =
+        members.filter(
+          (member) =>
+            member.chitti_id === chitti.id
+        );
+
+      const finance =
+  computeChittiFinance(
+    chittiMembers,
+    payments,
+    chitti,
+    chittiSchedules,
+    Object.fromEntries(
+      chittiMembers.map(
+        (member) => [
+          member.id,
+          memberLifts[member.id] ?? [],
+        ]
+      )
+    ),
+    monthKey
   );
 
-  const collected = collection.reduce(
-    (total, item) =>
-      total + item.paidAmount,
-    0
-  );
+      return {
+        expected:
+          totals.expected +
+          finance.currentMonthExpected,
 
-  const pending = collection.reduce(
-    (total, item) =>
-      total +
-      Math.max(
-        item.expectedAmount - item.paidAmount,
-        0
-      ),
-    0
-  );
+        collected:
+          totals.collected +
+          finance.currentMonthCollected,
 
-  return {
-    expected,
-    collected,
-    pending,
-  };
-}, [collection]);
+        pending:
+          totals.pending +
+          finance.currentMonthBalance,
+      };
+    },
+    {
+      expected: 0,
+      collected: 0,
+      pending: 0,
+    }
+  );
+}, [
+  chittis,
+  members,
+  payments,
+  allSchedules,
+  memberLifts,
+  monthKey,
+]);
 
   // =========================================================
   // FILTER + SORT
