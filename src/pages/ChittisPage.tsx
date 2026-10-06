@@ -1287,23 +1287,7 @@ const after =
 await scheduleService.upsertBulk(
   rows
 );
-        const oldRows =
-          allSchedules.filter(
-            (schedule) =>
-              schedule.chitti_id ===
-                scheduleEditingChitti.id&&
-              schedule.month_number >
-                editNumberOfMonths
-          );
-
-        for (
-          const oldRow of
-          oldRows
-        ) {
-          await scheduleService.remove(
-            oldRow.id
-          );
-        }
+        
 
         await refresh();
 

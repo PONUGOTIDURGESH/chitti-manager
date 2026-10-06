@@ -156,35 +156,18 @@ const [memberLifts, setMemberLifts] = useState<
   // =========================================================
 
   const collection = useMemo(() => {
-    return members
-  .filter((member) => {
-    if (member.archived) return false;
-
-    if (!member.start_date) return false;
-
-    const selectedDate = new Date(
-      `${selectedMonth}-01T00:00:00`
-    );
-
-    const startDate = new Date(
-      `${member.start_date}T00:00:00`
-    );
-
-    // Member hasn't started by the selected month
-    if (startDate > selectedDate) return false;
-
-    return true;
-  })
-  .map((member) => {
-        const schedules = allSchedules
-          .filter(
-            (schedule) =>
-              schedule.chitti_id === member.chitti_id
-          )
-          .sort(
-            (a, b) =>
-              a.month_number - b.month_number
-          );
+  return members
+    .filter((member) => !member.archived)
+    .map((member) => {
+      const schedules = allSchedules
+        .filter(
+          (schedule) =>
+            schedule.chitti_id === member.chitti_id
+        )
+        .sort(
+          (a, b) =>
+            a.month_number - b.month_number
+        );
 
         // -----------------------------------------------
         // Find this member's current schedule month
@@ -291,6 +274,7 @@ const currentMonthNumber =
     members,
     payments,
     allSchedules,
+    chittis,
     monthKey,
      memberLifts,
   ]);
@@ -364,6 +348,7 @@ const totals = useMemo(() => {
   allSchedules,
   memberLifts,
   monthKey,
+   chittis,
 ]);
 
   // =========================================================
@@ -460,12 +445,12 @@ const totals = useMemo(() => {
       return;
     }
 
-    if (!item.expectedAmount) {
-      alert(
-        'This member has no active installment for the current month.'
-      );
-      return;
-    }
+    if (!item.expectedAmount && item.monthPayments.length === 0) {
+  alert(
+    'This member has no active installment for the selected month.'
+  );
+  return;
+}
 
     setSavingMemberId(item.member.id);
 
@@ -493,9 +478,10 @@ const totals = useMemo(() => {
           {
             amount,
             payment_date:
-              currentDate
-                .toISOString()
-                .slice(0, 10),
+  existingPayment.payment_date ||
+  currentDate
+    .toISOString()
+    .slice(0, 10),
             installment_month:
               monthKey,
           }
@@ -529,7 +515,7 @@ const totals = useMemo(() => {
           String(amount),
       }));
 
-      refresh();
+      await refresh();
     } catch (e) {
       console.error(
         'Failed to save monthly collection:',
@@ -603,7 +589,7 @@ const totals = useMemo(() => {
   value={selectedMonth}
   onChange={(e) => setSelectedMonth(e.target.value)}
 >
-  {Array.from({ length: 12 }, (_, index) => {
+  {Array.from({ length: 36 }, (_, index) => {
     const date = new Date(
       currentDate.getFullYear(),
       currentDate.getMonth() - index,
