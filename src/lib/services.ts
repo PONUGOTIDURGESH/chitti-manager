@@ -384,7 +384,15 @@ console.log('UPSERT RESULT:', data);
 // ---------- Payments ----------
 export const paymentService = {
   async list(chittiId?: string, memberId?: string): Promise<Payment[]> {
-    let q = supabase.from('payments').select('*');
+  const pageSize = 1000;
+  let from = 0;
+  const allPayments: Payment[] = [];
+
+  while (true) {
+    let q = supabase
+      .from('payments')
+      .select('*')
+      .range(from, from + pageSize - 1);
 
     if (chittiId) q = q.eq('chitti_id', chittiId);
     if (memberId) q = q.eq('member_id', memberId);
@@ -396,8 +404,19 @@ export const paymentService = {
     const { data, error } = await q;
 
     if (error) throw error;
-    return data ?? [];
-  },
+
+    const page = data ?? [];
+    allPayments.push(...page);
+
+    if (page.length < pageSize) {
+      break;
+    }
+
+    from += pageSize;
+  }
+
+  return allPayments;
+},
 
   async create(input: PaymentInput): Promise<Payment> {
     const { data, error } = await supabase
