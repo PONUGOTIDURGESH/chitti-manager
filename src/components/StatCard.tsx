@@ -33,13 +33,13 @@ export function StatCard({
       <div className="flex items-start justify-between">
         <div className="min-w-0">
           <p className="text-xs font-medium text-slate-500 dark:text-slate-400">{label}</p>
-          <p className="mt-1 truncate text-xl font-bold text-slate-900 dark:text-white">
+          <p className="tabular mt-1 truncate text-xl font-bold text-slate-900 dark:text-white">
             {isMoney ? formatMoney(value) : value}
           </p>
-          {sub && <p className="mt-0.5 text-[11px] text-slate-400">{sub}</p>}
+          {sub && <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">{sub}</p>}
         </div>
         <div className={`grid h-9 w-9 shrink-0 place-items-center rounded-xl ${tones[tone]}`}>
-          <Icon className="h-4.5 w-4.5" strokeWidth={2.2} />
+          <Icon className="h-[18px] w-[18px]" strokeWidth={2.2} />
         </div>
       </div>
     </motion.div>

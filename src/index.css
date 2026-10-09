@@ -16,16 +16,25 @@
   .dark body {
     @apply bg-slate-950 text-slate-100;
   }
-  * {
+    /* Only UI chrome is non-selectable, so amounts, names and phone numbers can be copied */
+  button, nav, [role='tab'] {
     -webkit-user-select: none;
     user-select: none;
   }
-  input, textarea, select {
-    -webkit-user-select: text;
-    user-select: text;
+  :focus-visible {
+    outline: 2px solid theme('colors.brand.500');
+    outline-offset: 2px;
+    border-radius: 0.5rem;
   }
-}
-
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
 @layer components {
   .card {
     @apply rounded-2xl bg-white shadow-card dark:bg-slate-900 dark:ring-1 dark:ring-white/5;
@@ -59,6 +68,27 @@
   }
 }
 
+
+/* shimmer skeleton */
+@keyframes shimmer {
+  100% { transform: translateX(100%); }
+}
+.shimmer {
+  position: relative;
+  overflow: hidden;
+}
+.shimmer::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.5), transparent);
+  animation: shimmer 1.4s infinite;
+}
+.dark .shimmer::after {
+  background: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.06), transparent);
+}
+
 /* safe area for mobile */
 .pb-safe {
   padding-bottom: env(safe-area-inset-bottom, 0px);
@@ -74,4 +104,5 @@
 .no-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;
+}
 }

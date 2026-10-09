@@ -3,7 +3,7 @@ import { useRouter, type Route } from '@/hooks/useRouter';
 import { useAuth } from '@/hooks/useAuth';
 import { motion } from 'framer-motion';
 import BrandLogo from '@/components/BrandLogo';
-const navItems: { name: Route['name']; label: string; icon: typeof LayoutDashboard }[] = [
+const navItems: { name: Route['name']; label: string; short?: string; icon: typeof LayoutDashboard }[] = [
   { name: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { name: 'chittis', label: 'Chittis', icon: Layers },
   { name: 'members', label: 'Members', icon: Users },
@@ -18,18 +18,21 @@ const navItems: { name: Route['name']; label: string; icon: typeof LayoutDashboa
 ];
 
 export function BottomNav() {
-  const { route, navigate } = useRouter();
+    const { route, navigate } = useRouter();
+  // Settings lives in the header on mobile, which keeps five comfortable tap targets here
+  const mobileItems = navItems.filter((i) => i.name !== 'settings');
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-slate-200 bg-white pb-safe backdrop-blur-lg dark:border-slate-800 dark:bg-slate-950 lg:hidden">
+    <nav aria-label="Primary" className="fixed inset-x-0 bottom-0 z-30 border-t border-slate-200 bg-white/85 pb-safe backdrop-blur-xl dark:border-slate-800 dark:bg-slate-950/85 lg:hidden">
       <div className="mx-auto flex max-w-md items-stretch justify-around">
-        {navItems.map((item) => {
+        {mobileItems.map((item) => {
           const active = route.name === item.name;
           const Icon = item.icon;
           return (
             <button
               key={item.name}
               onClick={() => navigate({ name: item.name } as Route)}
-              className="relative flex flex-1 flex-col items-center gap-1 py-3"
+                            aria-current={active ? 'page' : undefined}
+              className="relative flex min-h-[56px] flex-1 flex-col items-center justify-center gap-1 py-2"
             >
               {active && (
                 <motion.div
@@ -42,9 +45,9 @@ export function BottomNav() {
                 strokeWidth={active ? 2.4 : 2}
               />
               <span
-                className={`text-xs font-medium ${active ? 'text-brand-600 dark:text-brand-400' : 'text-slate-400'}`}
+                              className={`text-[11px] font-medium ${active ? 'text-brand-600 dark:text-brand-400' : 'text-slate-500 dark:text-slate-400'}`}
               >
-                {item.label}
+                {item.short ?? item.label}
               </span>
             </button>
           );
@@ -110,8 +113,9 @@ export function Sidebar() {
 
 export function MobileHeader({ title, onMenu }: { title: string; onMenu?: () => void }) {
   const { signOut } = useAuth();
+  const { navigate } = useRouter();
   return (
-    <header className="sticky top-0 z-20 flex items-center justify-between border-b border-slate-200 bg-white px-4 py-4 pt-safe backdrop-blur-lg dark:border-slate-800 dark:bg-slate-950 lg:hidden">
+    <header className="sticky top-0 z-20 flex items-center justify-between border-b border-slate-200 bg-white/85 px-4 py-3 pt-safe backdrop-blur-xl dark:border-slate-800 dark:bg-slate-950/85 lg:hidden">
       <div className="flex min-w-0 items-center gap-2.5">
   {onMenu && (
     <button
@@ -142,9 +146,22 @@ export function MobileHeader({ title, onMenu }: { title: string; onMenu?: () => 
     </div>
   </div>
 </div>
-      <button onClick={signOut} className="grid h-10 w-10 place-items-center rounded-lg text-slate-500">
-        <LogOut className="h-6 w-6" />
-      </button>
+      <div className="flex items-center">
+        <button
+          onClick={() => navigate({ name: 'settings' } as Route)}
+          aria-label="Settings"
+          className="grid h-11 w-11 place-items-center rounded-xl text-slate-500 transition hover:bg-slate-100 dark:hover:bg-slate-800"
+        >
+          <Settings className="h-5 w-5" />
+        </button>
+        <button
+          onClick={signOut}
+          aria-label="Sign out"
+          className="grid h-11 w-11 place-items-center rounded-xl text-slate-500 transition hover:bg-slate-100 dark:hover:bg-slate-800"
+        >
+          <LogOut className="h-5 w-5" />
+        </button>
+      </div>
     </header>
   );
 }
