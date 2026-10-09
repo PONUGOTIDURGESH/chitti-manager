@@ -171,9 +171,6 @@ const selectedInstallmentPayment = selectedInstallment
     )
   : undefined;
 
-console.log('DEBUG SCHEDULES', memberSchedules);
-console.log('DEBUG ROWS', rows);
-
   const timeline = useMemo(() => {
     const items: { date: string; title: string; sub?: string; kind: 'member' | 'payment' }[] = [];
     items.push({ date: member.created_at, title: `${member.full_name} added`, sub: 'Member created', kind: 'member' });

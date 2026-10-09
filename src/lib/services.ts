@@ -290,8 +290,7 @@ export const scheduleService = {
       user_id: user.id,
     }));
 
-    console.log('CREATE BULK INPUT COUNT:', rows.length);
-console.log('CREATE BULK INPUT:', rowsWithUserId);
+
 
     const { data, error } = await supabase
       .from('chitti_schedule')
@@ -350,8 +349,6 @@ console.log('CREATE BULK INPUT:', rowsWithUserId);
       user_id: user.id,
     }));
 
-    console.log('CREATE BULK INPUT COUNT:', rows.length);
-console.log('CREATE BULK INPUT:', rowsWithUserId);
 
     const { data, error } = await supabase
       .from('chitti_schedule')
@@ -364,9 +361,6 @@ console.log('CREATE BULK INPUT:', rowsWithUserId);
   console.error('UPSERT ERROR:', error);
   throw error;
 }
-
-console.log('UPSERT RESULT COUNT:', data?.length);
-console.log('UPSERT RESULT:', data);
 
     await logActivity(
       'schedule_bulk_updated',

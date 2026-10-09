@@ -154,33 +154,16 @@ export function StatementCard({
 
   const today = todayISO();
 
-  console.log("TODAY:", today);
-
-rows.forEach((row) => {
-  console.log({
-    month: row.monthLabel,
-    dueDate: row.dueDate,
-    amountDue: row.amountDue,
-    amountPaid: row.amountPaid,
-    status: row.status,
-  });
-});
 
 const todayDate = new Date(today);
 
 const totalDue = rows
   .filter((row) => row.monthLabel === "Aug 2026")
   .reduce((total, row) => {
-    console.log("CHECK ROW", row);
 
     const dueDate = new Date(row.dueDate);
     const todayDate = new Date(today);
 
-    console.log({
-      dueDate,
-      todayDate,
-      isFuture: dueDate > todayDate,
-    });
 
     if (dueDate > todayDate) {
       return total;

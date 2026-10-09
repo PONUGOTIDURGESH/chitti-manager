@@ -126,12 +126,6 @@ valueElements.forEach((element) => {
         const fullWidth = clone.scrollWidth;
         const fullHeight = clone.scrollHeight;
 
-        console.log(
-          "Statement export size:",
-          fullWidth,
-          "x",
-          fullHeight
-        );
 
         const canvas = await html2canvas(clone, {
           scale: 3,
