@@ -718,11 +718,6 @@ useEffect(() => {
           }
         );
 
-        console.log(
-  'CREATE SCHEDULE DATA:',
-  scheduleData.length,
-  scheduleData
-);
 
 await scheduleService.createBulk(
   scheduleData
@@ -1115,16 +1110,11 @@ await scheduleService.createBulk(
 
   const saveEditedSchedule = async () => {
 
-  console.log("SAVE FUNCTION STARTED");
-  console.log("BUSY:", busy);
-  console.log("SCHEDULE EDITING CHITTI:", scheduleEditingChitti);
-  console.log("ROWS COUNT:", editScheduleRows.length);
 
   if (busy) return;
 
 
     if (!scheduleEditingChitti) {
-  console.log("SCHEDULE EDITING CHITTI IS NULL — SAVE STOPPED");
   setEditScheduleError(
     "Internal error: editing chitti is missing"
   );
@@ -1278,11 +1268,7 @@ const after =
             }
           );
 
-          console.log(
-  'EDIT SCHEDULE DATA:',
-  rows.length,
-  rows
-);
+          
 
 await scheduleService.upsertBulk(
   rows
@@ -2426,7 +2412,6 @@ const finance = computeChittiFinance(
     if (busy) return;
 
     setShowScheduleEditor(false);
-    console.log("EDITING CHITTI CLEARED BY MODAL onClose");
 setScheduleEditingChitti(null);
     setEditScheduleRows([]);
     setEditScheduleError(null);
@@ -2454,7 +2439,6 @@ footer={
         if (busy) return;
 
         setShowScheduleEditor(false);
-        console.log("EDITING CHITTI CLEARED BY CANCEL");
 setScheduleEditingChitti(null);
         setEditScheduleRows([]);
         setEditScheduleError(null);
@@ -2468,11 +2452,10 @@ setScheduleEditingChitti(null);
   className="btn-primary h-10 flex-1 flex items-center justify-center gap-2 text-sm"
   disabled={busy}
   onClick={(e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    console.log("SAVE SCHEDULE BUTTON CLICKED");
-    saveEditedSchedule();
-  }}
+  e.preventDefault();
+  e.stopPropagation();
+  saveEditedSchedule();
+}}
 >
       {busy && (
         <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
