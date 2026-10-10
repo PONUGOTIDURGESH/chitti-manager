@@ -1,6 +1,5 @@
 import { useState } from "react";
 
-
 type Props = {
   targetRef: React.RefObject<HTMLElement>;
   filename: string;
@@ -17,6 +16,11 @@ const PDF_WIDTH_MM = 210;
 const PDF_HEIGHT_MM = 297;
 const PDF_MARGIN_MM = 8;
 
+// html2canvas draws text a few pixels lower than the browser does.
+// Increase a number if its text is still low, decrease it if it is too high.
+const CELL_TEXT_SHIFT_UP_PX = 5; // table headings and rows
+const LIFT_TEXT_SHIFT_UP_PX = 5; // yellow "Chitti Lift Amount" bar
+const CELL_PADDING_Y_PX = 5; // space above and below the text in each cell (original is about 6.5)
 // =========================================================
 // COMPONENT
 // =========================================================
@@ -70,69 +74,109 @@ export default function ShareButtons({
       document.body.appendChild(clone);
 
       // =========================================================
-// EXPORT TEXT VISIBILITY FIX
-// =========================================================
+      // EXPORT TEXT VISIBILITY FIX
+      // =========================================================
 
-const tableCells =
-  clone.querySelectorAll<HTMLElement>("td, th");
+      const tableCells =
+        clone.querySelectorAll<HTMLElement>("td, th");
 
-tableCells.forEach((cell) => {
-  cell.style.verticalAlign = "middle";
-  cell.style.boxSizing = "border-box";
-});
+      tableCells.forEach((cell) => {
+        cell.style.verticalAlign = "middle";
+        cell.style.boxSizing = "border-box";
+      });
 
-const liftRows =
-  clone.querySelectorAll<HTMLElement>(
-    "td.bg-amber-400, td.bg-yellow-400, td.bg-emerald-400"
-  );
+      const liftRows =
+        clone.querySelectorAll<HTMLElement>(
+          "td.bg-amber-400, td.bg-yellow-400, td.bg-emerald-400"
+        );
 
-liftRows.forEach((cell) => {
-  cell.style.verticalAlign = "middle";
-  cell.style.paddingTop = "0";
-  cell.style.paddingBottom = "0";
-  cell.style.height = "auto";
-cell.style.boxSizing = "border-box";
-  cell.style.lineHeight = "22px";
+      liftRows.forEach((cell) => {
+        cell.style.verticalAlign = "middle";
+        cell.style.paddingTop = "0";
+        cell.style.paddingBottom = "0";
+        cell.style.height = "auto";
+        cell.style.boxSizing = "border-box";
+        cell.style.lineHeight = "22px";
 
-  const content = cell.querySelector<HTMLElement>("div");
+        const content = cell.querySelector<HTMLElement>("div");
 
-  if (content) {
-    content.style.position = "static";
-    content.style.top = "auto";
-    content.style.lineHeight = "22px";
-    content.style.display = "flex";
-    content.style.height = "100%";
-content.style.minHeight = "22px";
-content.style.alignItems = "center";
-content.style.justifyContent = "center";
-    content.style.flexWrap = "nowrap";
-    content.style.margin = "0";
-    content.style.padding = "0";
-  }
-});
+        if (content) {
+          content.style.position = "static";
+          content.style.top = "auto";
+          content.style.lineHeight = "22px";
+          content.style.display = "flex";
+          content.style.height = "100%";
+          content.style.minHeight = "22px";
+          content.style.alignItems = "center";
+          content.style.justifyContent = "center";
+          content.style.flexWrap = "nowrap";
+          content.style.margin = "0";
+          content.style.padding = "0";
+        }
+      });
 
-const truncatedElements =
-  clone.querySelectorAll<HTMLElement>(".truncate");
+      const truncatedElements =
+        clone.querySelectorAll<HTMLElement>(".truncate");
 
-truncatedElements.forEach((element) => {
-  element.style.overflow = "visible";
-  element.style.textOverflow = "clip";
-  element.style.whiteSpace = "nowrap";
-  element.style.minWidth = "0";
-});
+      truncatedElements.forEach((element) => {
+        element.style.overflow = "visible";
+        element.style.textOverflow = "clip";
+        element.style.whiteSpace = "nowrap";
+        element.style.minWidth = "0";
+      });
 
-const valueElements =
-  clone.querySelectorAll<HTMLElement>(
-    "span.min-w-0.flex-1"
-  );
+      const valueElements =
+        clone.querySelectorAll<HTMLElement>(
+          "span.min-w-0.flex-1"
+        );
 
-valueElements.forEach((element) => {
-  element.style.overflow = "visible";
-  element.style.textOverflow = "clip";
-  element.style.whiteSpace = "nowrap";
-  element.style.display = "block";
-  element.style.flex = "1 1 auto";
-});
+      valueElements.forEach((element) => {
+        element.style.overflow = "visible";
+        element.style.textOverflow = "clip";
+        element.style.whiteSpace = "nowrap";
+        element.style.display = "block";
+        element.style.flex = "1 1 auto";
+      });
+
+      // =========================================================
+      // EXPORT TEXT POSITION FIX
+      // html2canvas places table text slightly too low, so move
+      // it up inside the hidden copy only (preview is untouched).
+      // =========================================================
+
+      // Table headings and normal rows
+      clone.querySelectorAll<HTMLElement>("th, td").forEach((cell) => {
+        if (cell.hasAttribute("colspan")) return; // lift row is handled below
+                cell.style.paddingTop = `${CELL_PADDING_Y_PX}px`;
+        cell.style.paddingBottom = `${CELL_PADDING_Y_PX}px`;
+
+        const wrapper = document.createElement("span");
+        wrapper.style.display = "inline-block";
+        wrapper.style.position = "relative";
+                wrapper.style.padding = "4px 0";
+        wrapper.style.top = `-${CELL_TEXT_SHIFT_UP_PX}px`;
+
+        while (cell.firstChild) {
+          wrapper.appendChild(cell.firstChild);
+        }
+        cell.appendChild(wrapper);
+      });
+
+      // Yellow "Chitti Lift Amount Paid" bar
+      clone
+        .querySelectorAll<HTMLElement>("td[colspan] > div")
+        .forEach((row) => {
+          row.style.position = "relative";
+          row.style.top = `-${LIFT_TEXT_SHIFT_UP_PX}px`;
+        });
+
+              // Bullet separators in the yellow bar sit lower than the text in the export
+      clone
+        .querySelectorAll<HTMLElement>("td[colspan] > div > span.mx-2")
+        .forEach((dot) => {
+          dot.style.position = "relative";
+          dot.style.top = "-3px";
+        });
 
       try {
         // Force browser layout before measuring.
@@ -143,9 +187,9 @@ valueElements.forEach((element) => {
         const fullWidth = clone.scrollWidth;
         const fullHeight = clone.scrollHeight;
 
-
         const { default: html2canvas } = await import("html2canvas");
-const canvas = await html2canvas(clone, {
+
+        const canvas = await html2canvas(clone, {
           scale: 3,
 
           useCORS: true,
@@ -195,25 +239,19 @@ const canvas = await html2canvas(clone, {
     setBusy(true);
 
     try {
-      const canvas =
-        await generateStatementCanvas();
+      const canvas = await generateStatementCanvas();
 
       if (!canvas) return;
 
-      const blob =
-        await canvasToBlob(canvas);
+      const blob = await canvasToBlob(canvas);
 
       if (!blob) return;
 
-      const url =
-        URL.createObjectURL(blob);
+      const url = URL.createObjectURL(blob);
 
-      const link =
-        document.createElement("a");
+      const link = document.createElement("a");
 
-      link.download =
-        `${filename}.png`;
-
+      link.download = `${filename}.png`;
       link.href = url;
 
       document.body.appendChild(link);
@@ -222,14 +260,9 @@ const canvas = await html2canvas(clone, {
 
       URL.revokeObjectURL(url);
     } catch (error) {
-      console.error(
-        "Failed to save statement:",
-        error
-      );
+      console.error("Failed to save statement:", error);
 
-      alert(
-        "Failed to save statement image"
-      );
+      alert("Failed to save statement image");
     } finally {
       setBusy(false);
     }
@@ -240,46 +273,46 @@ const canvas = await html2canvas(clone, {
   // =========================================================
 
   const download = async () => {
-  setBusy(true);
+    setBusy(true);
 
-  try {
-    const canvas = await generateStatementCanvas();
+    try {
+      const canvas = await generateStatementCanvas();
 
-    if (!canvas) return;
+      if (!canvas) return;
 
-    const { default: jsPDF } = await import("jspdf");
-const pdf = new jsPDF("p", "mm", "a4");
+      const { default: jsPDF } = await import("jspdf");
+      const pdf = new jsPDF("p", "mm", "a4");
 
-    const PAGE_WIDTH = 210;
-    const MARGIN = 5;
+      const PAGE_WIDTH = 210;
+      const MARGIN = 5;
 
-    const availableWidth = PAGE_WIDTH - MARGIN * 2;
+      const availableWidth = PAGE_WIDTH - MARGIN * 2;
 
-    const scale = availableWidth / canvas.width;
+      const scale = availableWidth / canvas.width;
 
-    const drawWidth = canvas.width * scale;
-    const drawHeight = canvas.height * scale;
+      const drawWidth = canvas.width * scale;
+      const drawHeight = canvas.height * scale;
 
-    const x = (PAGE_WIDTH - drawWidth) / 2;
-    const y = MARGIN;
+      const x = (PAGE_WIDTH - drawWidth) / 2;
+      const y = MARGIN;
 
-    pdf.addImage(
-      canvas.toDataURL("image/png", 1),
-      "PNG",
-      x,
-      y,
-      drawWidth,
-      drawHeight
-    );
+      pdf.addImage(
+        canvas.toDataURL("image/png", 1),
+        "PNG",
+        x,
+        y,
+        drawWidth,
+        drawHeight
+      );
 
-    pdf.save(`${filename}.pdf`);
-  } catch (error) {
-    console.error("Failed to generate PDF:", error);
-    alert("Failed to generate PDF");
-  } finally {
-    setBusy(false);
-  }
-};
+      pdf.save(`${filename}.pdf`);
+    } catch (error) {
+      console.error("Failed to generate PDF:", error);
+      alert("Failed to generate PDF");
+    } finally {
+      setBusy(false);
+    }
+  };
 
   // =========================================================
   // SHARE FULL STATEMENT IMAGE
@@ -289,24 +322,17 @@ const pdf = new jsPDF("p", "mm", "a4");
     setBusy(true);
 
     try {
-      const canvas =
-        await generateStatementCanvas();
+      const canvas = await generateStatementCanvas();
 
       if (!canvas) return;
 
-      const blob =
-        await canvasToBlob(canvas);
+      const blob = await canvasToBlob(canvas);
 
       if (!blob) return;
 
-      const file =
-        new File(
-          [blob],
-          `${filename}.png`,
-          {
-            type: "image/png",
-          }
-        );
+      const file = new File([blob], `${filename}.png`, {
+        type: "image/png",
+      });
 
       // -------------------------------------------------------
       // Native device sharing
@@ -319,8 +345,8 @@ const pdf = new jsPDF("p", "mm", "a4");
         })
       ) {
         await navigator.share({
-  files: [file],
-});
+          files: [file],
+        });
 
         return;
       }
@@ -329,15 +355,11 @@ const pdf = new jsPDF("p", "mm", "a4");
       // Fallback → download image
       // -------------------------------------------------------
 
-      const url =
-        URL.createObjectURL(blob);
+      const url = URL.createObjectURL(blob);
 
-      const link =
-        document.createElement("a");
+      const link = document.createElement("a");
 
-      link.download =
-        `${filename}.png`;
-
+      link.download = `${filename}.png`;
       link.href = url;
 
       document.body.appendChild(link);
@@ -346,10 +368,7 @@ const pdf = new jsPDF("p", "mm", "a4");
 
       URL.revokeObjectURL(url);
     } catch (error) {
-      console.error(
-        "Failed to share statement:",
-        error
-      );
+      console.error("Failed to share statement:", error);
     } finally {
       setBusy(false);
     }
