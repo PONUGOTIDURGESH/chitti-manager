@@ -367,32 +367,29 @@ const reversedPayments = useMemo(
                 </div>
 
 
-                {/* ACTION */}
-                <button
-  type="button"
-  onClick={() => setEditingPayment(p)}
-  title="Edit payment"
-  className="mr-1.5 rounded-lg border border-slate-700 bg-slate-900 p-1.5 text-slate-500 transition hover:border-brand-500/30 hover:bg-brand-500/5 hover:text-brand-400"
->
-  <Pencil className="h-3.5 w-3.5" />
-</button>
-
-                <div className="flex justify-end">
+                                {/* ACTION */}
+                <div className="flex items-center justify-end gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setEditingPayment(p)}
+                    title="Edit payment"
+                    aria-label="Edit payment"
+                    className="rounded-lg border border-slate-700 bg-slate-900 p-1.5 text-slate-500 transition hover:border-brand-500/30 hover:bg-brand-500/5 hover:text-brand-400"
+                  >
+                    <Pencil className="h-3.5 w-3.5" />
+                  </button>
 
                   {!p.reversed && (
-
                     <button
-                      onClick={() =>
-                        setConfirmReverse(p)
-                      }
+                      type="button"
+                      onClick={() => setConfirmReverse(p)}
                       title="Reverse payment"
+                      aria-label="Reverse payment"
                       className="rounded-lg border border-slate-700 bg-slate-900 p-1.5 text-slate-500 transition hover:border-red-500/30 hover:bg-red-500/5 hover:text-red-400"
                     >
                       <Undo2 className="h-3.5 w-3.5" />
                     </button>
-
                   )}
-
                 </div>
 
               </div>
