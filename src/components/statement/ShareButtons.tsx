@@ -73,9 +73,17 @@ export default function ShareButtons({
 // EXPORT TEXT VISIBILITY FIX
 // =========================================================
 
+const tableCells =
+  clone.querySelectorAll<HTMLElement>("td, th");
+
+tableCells.forEach((cell) => {
+  cell.style.verticalAlign = "middle";
+  cell.style.boxSizing = "border-box";
+});
+
 const liftRows =
   clone.querySelectorAll<HTMLElement>(
-    "td.bg-emerald-50"
+    "td.bg-amber-400, td.bg-yellow-400, td.bg-emerald-400"
   );
 
 liftRows.forEach((cell) => {
@@ -91,11 +99,12 @@ cell.style.boxSizing = "border-box";
   if (content) {
     content.style.position = "static";
     content.style.top = "auto";
-    content.style.lineHeight = "normal";
+    content.style.lineHeight = "22px";
     content.style.display = "flex";
-    content.style.height = "22px";
-    content.style.alignItems = "center";
-    content.style.justifyContent = "center";
+    content.style.height = "100%";
+content.style.minHeight = "22px";
+content.style.alignItems = "center";
+content.style.justifyContent = "center";
     content.style.flexWrap = "nowrap";
     content.style.margin = "0";
     content.style.padding = "0";
