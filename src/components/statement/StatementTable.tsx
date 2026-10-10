@@ -169,7 +169,7 @@ export default function StatementTable({
                     <tr key={lift.id}>
   <td
   colSpan={8}
-  className="h-[22px] border border-yellow-500 bg-yellow-400 px-3 py-0 text-center align-middle"
+  className="h-[22px] border border-yellow-500 bg-yellow-400 px-3 py-2 text-center align-middle"
 >
   <div className="flex h-[22px] items-center justify-center leading-none">
     <span className="text-[12px] font-extrabold text-blue-700">
