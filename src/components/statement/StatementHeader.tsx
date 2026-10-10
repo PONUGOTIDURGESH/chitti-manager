@@ -13,21 +13,28 @@ type Props = {
   chittiName: string;
   startDate: string | null;
   units: number | null | undefined;
+  hasLifted: boolean;
 };
 
 function InfoRow({
   icon,
   label,
   value,
+  theme,
 }: {
   icon: ReactNode;
   label: string;
   value: string;
+  theme: "green" | "yellow";
 }) {
   return (
     <div className="flex min-w-0 items-center gap-2.5">
       {/* ICON */}
-      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-600 text-white shadow-sm">
+      <div
+  className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${
+    theme === "green" ? "bg-emerald-700" : "bg-amber-400"
+  } text-white shadow-sm`}
+>
         {icon}
       </div>
 
@@ -52,14 +59,24 @@ export default function StatementHeader({
   chittiName,
   startDate,
   units,
+  hasLifted,
 }: Props) {
+  const theme = hasLifted ? "green" : "yellow";
   return (
     <section className="space-y-1.5.5">
       {/* =====================================================
           STATEMENT TITLE
           ===================================================== */}
-      <header className="border-b-[3px] border-blue-700 pb-2">
-  <p className="mb-1 text-[7px] font-extrabold uppercase tracking-[0.2em] text-blue-600">
+      <header
+  className={`border-b-[3px] pb-2 ${
+    theme === "green" ? "border-emerald-700" : "border-amber-400"
+  }`}
+>
+  <p
+  className={`mb-1 text-[7px] font-extrabold uppercase tracking-[0.2em] ${
+    theme === "green" ? "text-emerald-700" : "text-amber-600"
+  }`}
+>
     Account Statement
   </p>
 
@@ -71,22 +88,34 @@ export default function StatementHeader({
       {/* =====================================================
           MEMBER / CHITTI INFORMATION
           ===================================================== */}
-      <section className="rounded-[10px] border border-blue-100 bg-gradient-to-r from-white via-blue-50/20 to-white px-3 py-1.5 shadow-sm">
+      <section
+  className={`rounded-[10px] border px-3 py-1.5 shadow-sm ${
+    theme === "green"
+      ? "border-emerald-200 bg-gradient-to-r from-white via-emerald-50/40 to-white"
+      : "border-amber-200 bg-gradient-to-r from-white via-amber-50/40 to-white"
+  }`}
+>
         <div className="grid grid-cols-2">
           {/* =================================================
               LEFT INFORMATION
               ================================================= */}
-          <div className="space-y-1.5 border-r border-blue-100 pr-6">
+          <div
+  className={`space-y-1.5 border-r pr-6 ${
+    theme === "green" ? "border-emerald-200" : "border-amber-200"
+  }`}
+>
             <InfoRow
               icon={<UserRound className="h-4 w-4" strokeWidth={2.2} />}
               label="Member"
               value={memberName}
+              theme={theme}
             />
 
             <InfoRow
               icon={<Phone className="h-4 w-4" strokeWidth={2.2} />}
               label="Mobile Number"
               value={mobileNumber || "—"}
+              theme={theme}
             />
           </div>
 
@@ -95,7 +124,11 @@ export default function StatementHeader({
               ================================================= */}
           <div className="space-y-1.5 pl-7">
             <div className="flex min-w-0 items-center gap-2.5">
-  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-600 text-white shadow-sm">
+  <div
+  className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${
+    theme === "green" ? "bg-emerald-700" : "bg-amber-400"
+  } text-white shadow-sm`}
+>
     <CreditCard
       className="h-4 w-4"
       strokeWidth={2.2}
@@ -111,7 +144,11 @@ export default function StatementHeader({
       {chittiName}
     </p>
 
-    <p className="mt-1 text-[9px] font-bold leading-none text-blue-600">
+    <p
+  className={`mt-1 text-[9px] font-bold leading-none ${
+    theme === "green" ? "text-emerald-700" : "text-amber-600"
+  }`}
+>
       {units ?? 1} {units === 1 ? "Chitti" : "Chittis"}
     </p>
   </div>
@@ -121,6 +158,7 @@ export default function StatementHeader({
               icon={<CalendarDays className="h-4 w-4" strokeWidth={2.2} />}
               label="Start Date"
               value={startDate ? formatDate(startDate) : "—"}
+               theme={theme}
             />
           </div>
         </div>

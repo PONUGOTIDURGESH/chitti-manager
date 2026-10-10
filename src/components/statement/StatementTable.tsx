@@ -17,7 +17,7 @@ export default function StatementTable({
   lifts,
 }: Props) {
   return (
-    <div className="overflow-hidden rounded-xl border border-slate-200 shadow-sm">
+    <div className="overflow-hidden rounded-xl border border-slate-600 shadow-sm">
       <table className="w-full table-fixed border-collapse border border-slate-300 align-middle text-slate-900">
         {/* 🔒 LOCKED COLUMN WIDTHS */}
         <colgroup>
@@ -169,33 +169,31 @@ export default function StatementTable({
                     <tr key={lift.id}>
   <td
   colSpan={8}
-  className="h-[22px] border border-yellow-500 bg-yellow-400 px-3 py-2 text-center align-middle"
+  className="h-[22px] border border-yellow-500 bg-yellow-400 px-3 py-1   text-center align-middle"
 >
-  <div className="flex h-[22px] items-center justify-center leading-none">
-    <span className="text-[12px] font-extrabold text-blue-700">
-      ✓ Chitti Lift Amount Paid
-    </span>
+  <div className="flex h-[22px] w-full items-center justify-center gap-2 whitespace-nowrap leading-none">
+  <span className="text-[11px] font-extrabold text-blue-700">
+    ✓ Chitti Lift Amount Paid
+  </span>
 
-    <span className="mx-2 text-emerald-300">•</span>
+  <span className="text-emerald-300">•</span>
 
-    <span className="text-[11px] font-bold text-blue-700">
-      Lift Month {lift.lifted_month_number}
-    </span>
+  <span className="text-[11px] font-bold text-blue-700">
+    Lift Month {lift.lifted_month_number}
+  </span>
 
-    <span className="mx-2 text-emerald-300">•</span>
+  <span className="text-emerald-300">•</span>
 
-    <span className="text-[11px] font-extrabold text-blue-700">
-      {formatMoney(Number(lift.lift_amount))}
-    </span>
+  <span className="text-[11px] font-extrabold text-blue-700">
+    {formatMoney(Number(lift.lift_amount))}
+  </span>
 
-    <span className="mx-2 text-emerald-300">•</span>
+  <span className="text-emerald-300">•</span>
 
-    <span className="text-[11px] font-semibold text-blue-700">
-      {lift.paid_date
-        ? formatDate(lift.paid_date)
-        : "—"}
-    </span>
-  </div>
+  <span className="text-[11px] font-semibold text-blue-700">
+    Received On: {formatDate(lift.paid_date)}
+  </span>
+</div>
 </td>
 </tr>
                   ))}

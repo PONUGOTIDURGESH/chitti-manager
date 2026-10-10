@@ -605,10 +605,11 @@ const handleMouseUp = (e: React.PointerEvent<HTMLDivElement>) => {
                 chitti.name
               }
               startDate={
-                member.start_date
-              }
-               units={member.units ?? 1}
-            />
+  member.start_date
+}
+units={member.units ?? 1}
+hasLifted={Boolean(member.lifted_month_number || member.lifted_date || lifts.length > 0)}
+/>
 
             {/* =================================================
                 SUMMARY

@@ -80,16 +80,25 @@ const liftRows =
 
 liftRows.forEach((cell) => {
   cell.style.verticalAlign = "middle";
+  cell.style.paddingTop = "0";
+  cell.style.paddingBottom = "0";
+  cell.style.height = "auto";
+cell.style.boxSizing = "border-box";
+  cell.style.lineHeight = "22px";
 
   const content = cell.querySelector<HTMLElement>("div");
 
   if (content) {
-    content.style.position = "relative";
-    content.style.top = "-2px";
-    content.style.lineHeight = "1";
+    content.style.position = "static";
+    content.style.top = "auto";
+    content.style.lineHeight = "normal";
     content.style.display = "flex";
+    content.style.height = "22px";
     content.style.alignItems = "center";
     content.style.justifyContent = "center";
+    content.style.flexWrap = "nowrap";
+    content.style.margin = "0";
+    content.style.padding = "0";
   }
 });
 
