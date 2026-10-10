@@ -169,28 +169,28 @@ export default function StatementTable({
                     <tr key={lift.id}>
   <td
   colSpan={8}
-  className="h-[22px] border border-emerald-100/70 bg-emerald-50 px-3 py-0 text-center align-middle"
+  className="h-[22px] border border-yellow-500 bg-yellow-400 px-3 py-0 text-center align-middle"
 >
   <div className="flex h-[22px] items-center justify-center leading-none">
-    <span className="text-[12px] font-extrabold text-emerald-800">
+    <span className="text-[12px] font-extrabold text-blue-700">
       ✓ Chitti Lift Amount Paid
     </span>
 
     <span className="mx-2 text-emerald-300">•</span>
 
-    <span className="text-[11px] font-bold text-slate-600">
+    <span className="text-[11px] font-bold text-blue-700">
       Lift Month {lift.lifted_month_number}
     </span>
 
     <span className="mx-2 text-emerald-300">•</span>
 
-    <span className="text-[11px] font-extrabold text-emerald-700">
+    <span className="text-[11px] font-extrabold text-blue-700">
       {formatMoney(Number(lift.lift_amount))}
     </span>
 
     <span className="mx-2 text-emerald-300">•</span>
 
-    <span className="text-[11px] font-semibold text-slate-600">
+    <span className="text-[11px] font-semibold text-blue-700">
       {lift.paid_date
         ? formatDate(lift.paid_date)
         : "—"}
