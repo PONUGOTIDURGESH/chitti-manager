@@ -183,6 +183,30 @@ export const scheduleService = {
     return data ?? [];
   },
 
+    async listForChittis(ids: string[]): Promise<ChittiSchedule[]> {
+    if (!ids.length) return [];
+
+    const pageSize = 1000;
+    const all: ChittiSchedule[] = [];
+
+    for (let from = 0; ; from += pageSize) {
+      const { data, error } = await supabase
+        .from('chitti_schedule')
+        .select('*')
+        .in('chitti_id', ids)
+        .order('chitti_id', { ascending: true })
+        .order('month_number', { ascending: true })
+        .range(from, from + pageSize - 1);
+
+      if (error) throw error;
+
+      all.push(...(data ?? []));
+      if (!data || data.length < pageSize) break;
+    }
+
+    return all;
+  },
+
   async create(input: ChittiScheduleInput): Promise<ChittiSchedule> {
     await createSafetyBackup();
     const {
@@ -549,22 +573,31 @@ export const settingsService = {
 };
 
 // ---------- Safety Backup ----------
-async function createSafetyBackup(): Promise<void> {
-  try {
-    const {
-      data: { user },
-      error: userError,
-    } = await supabase.auth.getUser();
+let lastBackupAt = 0;
+const BACKUP_INTERVAL_MS = 10 * 60 * 1000; // 10 minutes
 
-    if (userError || !user) return;
+// force = true for destructive actions, so they always get a fresh backup
+async function createSafetyBackup(force = false): Promise<void> {
+  if (!force && Date.now() - lastBackupAt < BACKUP_INTERVAL_MS) return;
+
+  try {
+    // getSession reads the saved login on this device (no network call)
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+
+    if (!session) return;
 
     const { error } = await supabase.rpc('create_chitti_backup', {
-      p_user_id: user.id,
+      p_user_id: session.user.id,
     });
 
     if (error) {
       console.error('Safety backup failed:', error.message);
+      return; // don't start the 10-minute wait if the backup didn't happen
     }
+
+    lastBackupAt = Date.now();
   } catch (error) {
     console.error('Safety backup failed:', error);
   }

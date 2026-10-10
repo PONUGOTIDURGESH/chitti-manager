@@ -51,7 +51,7 @@ export function MemberDetailPage({ memberId, appData }: Props) {
 const [liftAmount, setLiftAmount] = useState("");
 const [newInstallmentAmount, setNewInstallmentAmount] = useState("");
 const [liftDate, setLiftDate] = useState(
-  new Date().toISOString().split("T")[0]
+  todayISO()
 
   
   
@@ -108,6 +108,22 @@ const [liftingNote, setLiftingNote] = useState(
   member?.lifting_note ?? ''
 );
 
+
+  const timeline = useMemo(() => {
+    if (!member) return [];
+    const items: { date: string; title: string; sub?: string; kind: 'member' | 'payment' }[] = [];
+    items.push({ date: member.created_at, title: `${member.full_name} added`, sub: 'Member created', kind: 'member' });
+    memberPayments.filter((p) => !p.reversed).forEach((p) => {
+      items.push({
+        date: p.created_at, title: `${p.installment_month} payment — ${formatMoney(Number(p.amount))}`,
+        sub: `${formatDate(p.payment_date)} · ${p.payment_mode}${p.note ? ` · ${p.note}` : ''}`, kind: 'payment',
+      });
+    });
+    return items.sort((a, b) => b.date.localeCompare(a.date));
+  }, [member, memberPayments]);
+
+ 
+
 const [liftingBusy, setLiftingBusy] = useState(false);
 
   if (!member) {
@@ -123,7 +139,7 @@ const [liftingBusy, setLiftingBusy] = useState(false);
       </button>
 
       <p className="text-sm text-slate-500">
-        Member details are not available.
+                {appData.loading ? 'Loading member…' : 'Member details are not available.'}
       </p>
     </div>
   );
@@ -171,17 +187,7 @@ const selectedInstallmentPayment = selectedInstallment
     )
   : undefined;
 
-  const timeline = useMemo(() => {
-    const items: { date: string; title: string; sub?: string; kind: 'member' | 'payment' }[] = [];
-    items.push({ date: member.created_at, title: `${member.full_name} added`, sub: 'Member created', kind: 'member' });
-    memberPayments.filter((p) => !p.reversed).forEach((p) => {
-      items.push({
-        date: p.created_at, title: `${p.installment_month} payment — ${formatMoney(Number(p.amount))}`,
-        sub: `${formatDate(p.payment_date)} · ${p.payment_mode}${p.note ? ` · ${p.note}` : ''}`, kind: 'payment',
-      });
-    });
-    return items.sort((a, b) => b.date.localeCompare(a.date));
-  }, [member, memberPayments]);
+  
 
   const archive = async () => {
     try { await memberService.archive(member.id, !member.archived); refresh(); }

@@ -23,9 +23,14 @@ export function useAppData(selectedChittiId: string | null) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const load = useCallback(async () => {
+    
+  const [warning, setWarning] = useState<string | null>(null);
+
+
+    const load = useCallback(async () => {
     setLoading(true);
     setError(null);
+    setWarning(null);
 
     try {
       const [c, m, p] = await Promise.all([
@@ -34,43 +39,21 @@ export function useAppData(selectedChittiId: string | null) {
         paymentService.list(),
       ]);
 
-      const scheduleResults = await Promise.allSettled(
-  c.map((chitti) => scheduleService.list(chitti.id))
-);
+      // One request for all schedules (instead of one per chitti)
+      let allSchedules: ChittiSchedule[] = [];
+      try {
+        allSchedules = await scheduleService.listForChittis(c.map((x) => x.id));
+      } catch (e) {
+        console.error('Failed to load schedules:', e);
+        setWarning('Could not load the payment schedules.');
+      }
 
-const allSchedules: ChittiSchedule[] = [];
-const scheduleErrors: string[] = [];
-
-scheduleResults.forEach((result, index) => {
-  const chitti = c[index];
-
-  if (result.status === 'fulfilled') {
-    allSchedules.push(...result.value);
-  } else {
-    console.error(
-      `Failed to load schedule for chitti ${chitti.id}:`,
-      result.reason
-    );
-
-    scheduleErrors.push(
-      `Failed to load configuration for "${chitti.name}".`
-    );
-  }
-});
-
-if (scheduleErrors.length > 0) {
-  setError(scheduleErrors.join(' '));
-}
       setChittis(c);
       setMembers(m);
       setPayments(p);
       setSchedules(allSchedules);
     } catch (e) {
-      setError(
-        e instanceof Error
-          ? e.message
-          : 'Failed to load data'
-      );
+      setError(e instanceof Error ? e.message : 'Failed to load data');
     } finally {
       setLoading(false);
     }
@@ -112,8 +95,9 @@ if (scheduleErrors.length > 0) {
     schedules: filteredSchedules,
     allSchedules: schedules,
 
-    loading,
+        loading,
     error,
+    warning,
     refresh,
   };
 }

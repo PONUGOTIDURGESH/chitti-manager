@@ -1,6 +1,5 @@
 import { useState } from "react";
-import jsPDF from "jspdf";
-import html2canvas from "html2canvas";
+
 
 type Props = {
   targetRef: React.RefObject<HTMLElement>;
@@ -127,7 +126,8 @@ valueElements.forEach((element) => {
         const fullHeight = clone.scrollHeight;
 
 
-        const canvas = await html2canvas(clone, {
+        const { default: html2canvas } = await import("html2canvas");
+const canvas = await html2canvas(clone, {
           scale: 3,
 
           useCORS: true,
@@ -229,7 +229,8 @@ valueElements.forEach((element) => {
 
     if (!canvas) return;
 
-    const pdf = new jsPDF("p", "mm", "a4");
+    const { default: jsPDF } = await import("jspdf");
+const pdf = new jsPDF("p", "mm", "a4");
 
     const PAGE_WIDTH = 210;
     const MARGIN = 5;

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import logo from '@/assets/chitti-logo.png';
+
 import { motion } from 'framer-motion';
 import {
   
