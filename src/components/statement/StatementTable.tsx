@@ -94,28 +94,28 @@ export default function StatementTable({
                   }
                 >
                   {/* # */}
-                  <td className="border border-slate-200 px-1.5 py-[6.5px] text-center align-middle text-[11px] font-bold leading-none text-slate-700">
+                  <td className="border border-slate-500 px-1.5 py-[6.5px] text-center align-middle text-[11px] font-bold leading-none text-slate-700">
                     {row.index}
                   </td>
 
                   {/* Due Date */}
-                  <td className="border border-slate-200 px-1.5 py-[6.5px] text-center align-middle text-[11px] font-semibold leading-none text-slate-700">
+                  <td className="border border-slate-500 px-1.5 py-[6.5px] text-center align-middle text-[11px] font-semibold leading-none text-slate-700">
                     {formatDate(row.dueDate)}
                   </td>
 
                   {/* Lift Amount */}
-                  <td className="border border-slate-200 px-1.5 py-[6.5px] text-center align-middle text-[11px] font-semibold leading-none text-slate-700">
+                  <td className="border border-slate-500 px-1.5 py-[6.5px] text-center align-middle text-[11px] font-semibold leading-none text-slate-700">
                     {formatMoney(row.liftAmount)}
                   </td>
 
                   {/* Amount Due */}
-                  <td className="border border-slate-200 px-1.5 py-[6.5px] text-center align-middle text-[11px] font-semibold leading-none text-slate-800">
+                  <td className="border border-slate-500 px-1.5 py-[6.5px] text-center align-middle text-[11px] font-semibold leading-none text-slate-800">
                     {formatMoney(row.amountDue)}
                   </td>
 
                   {/* Amount Paid */}
                   <td
-                    className={`border border-slate-200 px-1.5 py-[6.5px] text-center align-middle text-[11px] font-bold leading-none ${
+                    className={`border border-slate-500 px-1.5 py-[6.5px] text-center align-middle text-[11px] font-bold leading-none ${
                       isPaid
                         ? "text-emerald-700"
                         : isPartiallyPaid
@@ -128,7 +128,7 @@ export default function StatementTable({
 
                   {/* Paid On */}
                   <td
-                    className={`border border-slate-200 px-1.5 py-[6.5px] text-center align-middle text-[11px] font-semibold leading-none ${
+                    className={`border border-slate-500 px-1.5 py-[6.5px] text-center align-middle text-[11px] font-semibold leading-none ${
                       row.paymentDate
                         ? "text-slate-700"
                         : "text-slate-400"
@@ -140,13 +140,13 @@ export default function StatementTable({
                   </td>
 
                   {/* Mode */}
-                  <td className="border border-slate-200 px-1.5 py-[6.5px] text-center align-middle text-[11px] font-semibold capitalize leading-none text-slate-700">
+                  <td className="border border-slate-500 px-1.5 py-[6.5px] text-center align-middle text-[11px] font-semibold capitalize leading-none text-slate-700">
                     {row.paymentMode ?? "—"}
                   </td>
 
                   {/* Balance */}
                   <td
-                    className={`border border-slate-200 px-1.5 py-[6.5px] text-center align-middle text-[11px] font-extrabold leading-none ${
+                    className={`border border-slate-500 px-1.5 py-[6.5px] text-center align-middle text-[11px] font-extrabold leading-none ${
                       balance === 0
                         ? "text-emerald-700"
                         : "text-red-600"
