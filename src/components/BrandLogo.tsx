@@ -82,7 +82,7 @@ export default function BrandLogo({
       {shouldShowText && (
         <div className="leading-tight">
           <div
-            className={`${style.text} font-black tracking-tight text-slate-900`}
+            className={`${style.text} font-black tracking-tight bg-gradient-to-b from-[#E8C36A] via-[#C99A32] to-[#A87519] bg-clip-text text-transparent drop-shadow-[0_0_6px_rgba(201,154,50,0.35)]`}
           >
             Chitti Manager
           </div>
