@@ -11,6 +11,7 @@ import StatementHeader from "./statement/StatementHeader";
 import StatementTable from "./statement/StatementTable";
 import StatementFooter from "./statement/StatementFooter";
 import StatementSummary from "./statement/StatementSummary";
+import StatementNote from "./statement/StatementNote.tsx";
 import ShareButtons from "./statement/ShareButtons";
 
 import {
@@ -31,6 +32,7 @@ type Props = {
   chitti: Chitti;
   schedules: ChittiSchedule[];
   lifts?: MemberLift[];
+       note?: string | null;
 };
 
 export default function StatementCardV2({
@@ -39,6 +41,7 @@ export default function StatementCardV2({
   chitti,
   schedules,
   lifts = [],
+       note,
 }: Props) {
   const rows = useMemo(
     () =>
@@ -649,6 +652,8 @@ hasLifted={Boolean(member.lifted_month_number || member.lifted_date || lifts.len
                 ================================================= */}
 
             <div className="mt-3">
+
+              
               <StatementFooter
                 totalPaid={
                   finance.totalPaid

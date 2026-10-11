@@ -1020,6 +1020,7 @@ lifts={lifts}
     payments={memberPayments}
     chitti={chitti!}
     schedules={allSchedules}
+           onNoteSaved={refresh}
     lifts={lifts}
   />
 )}
@@ -1072,18 +1073,16 @@ function AddPaymentModal({
   editing?: Payment;
   onSaved: () => void;
 }) {
-  const lastPaymentMonth =
-  payments
-    .filter((p) => p.member_id === member.id && !p.reversed)
-    .sort((a, b) =>
-      String(b.payment_date).localeCompare(String(a.payment_date))
-    )[0]?.installment_month;
+    // Default to the first installment that is not fully paid (the same rows the
+  // schedule table shows, so lifts are taken into account).
+  const months = getInstallmentMonths(member);
+  const nextUnpaidRow = rows.find((r) => r.status !== 'PAID');
 
-const nextMonth =
-  editing?.installment_month ??
-  lastPaymentMonth ??
-  getNextUnpaidInstallmentMonth(member, payments, chitti, schedules) ??
-  currentMonthStr();
+  const nextMonth =
+    editing?.installment_month ??
+    (nextUnpaidRow ? months[nextUnpaidRow.index - 1] : undefined) ??
+    months[months.length - 1] ??
+    currentMonthStr();
 
   const [memberId] = useState(member.id);
 const [installmentMonth, setInstallmentMonth] = useState(nextMonth);
@@ -1116,16 +1115,10 @@ useEffect(() => {
   const month = editing?.installment_month ?? nextMonth;
 
   setInstallmentMonth(month);
-  setAmount(
+    setAmount(
     String(
       editing?.amount ??
-        getOutstandingForInstallment(
-          member,
-          payments,
-          month,
-          chitti,
-          schedules
-        )
+        getOutstanding(month)
     )
   );
   setPaymentDate(editing?.payment_date ?? todayISO());
@@ -1136,7 +1129,6 @@ useEffect(() => {
   setDup(null);
   setOverpay(false);
 }, [open, editing, member, payments, chitti, schedules, nextMonth]);
-  const months = getInstallmentMonths(member);
   const outstanding = getOutstanding(installmentMonth);
   const selectedIndex = months.indexOf(installmentMonth);
   const selectedRow = selectedIndex >= 0 ? rows[selectedIndex] : undefined;
@@ -1476,28 +1468,145 @@ function StatementModal({
   chitti,
   schedules,
   lifts,
+  onNoteSaved,
 }: {
   open: boolean;
-onClose: () => void;
-member: Member;
-payments: Payment[];
-chitti: Chitti;
-schedules: ChittiSchedule[];
-lifts: MemberLift[];
+  onClose: () => void;
+  member: Member;
+  payments: Payment[];
+  chitti: Chitti;
+  schedules: ChittiSchedule[];
+  lifts: MemberLift[];
+  onNoteSaved: () => void;
 }) {
+  const NOTE_LIMIT = 300;
+  const savedNote = member.statement_note ?? '';
+
+  const [note, setNote] = useState(savedNote);
+  const [savingNote, setSavingNote] = useState(false);
+
+  // The writing box stays hidden until needed (or until a note already exists)
+  const [showEditor, setShowEditor] = useState(Boolean(savedNote.trim()));
+  const [focusNote, setFocusNote] = useState(false);
+
+  // Keep the box in sync once the saved note has been refreshed
+  useEffect(() => {
+    setNote(member.statement_note ?? '');
+  }, [member.id, member.statement_note]);
+
+  const dirty = note.trim() !== savedNote.trim();
+
+  const openEditor = () => {
+    setFocusNote(true);
+    setShowEditor(true);
+  };
+
+  const cancelEditor = () => {
+    setNote('');
+    setShowEditor(false);
+    setFocusNote(false);
+  };
+
+  const saveNote = async (value: string) => {
+    const clean = value.trim();
+    setSavingNote(true);
+    try {
+      await memberService.update(member.id, {
+        statement_note: clean || null,
+      });
+      setNote(clean);
+      setShowEditor(Boolean(clean));
+      setFocusNote(false);
+      onNoteSaved();
+      alert(clean ? 'Note saved' : 'Note removed');
+    } catch (e) {
+      alert(e instanceof Error ? e.message : 'Failed to save note');
+    } finally {
+      setSavingNote(false);
+    }
+  };
+
   return (
     <Modal open={open} onClose={onClose} title="Member statement" size="xl">
+      {/* NOTE (optional) */}
+      {!showEditor ? (
+        <div className="mb-3">
+          <button
+            type="button"
+            className="btn-secondary px-3 py-2 text-xs"
+            onClick={openEditor}
+          >
+            <StickyNote className="h-3.5 w-3.5" />
+            Add note
+          </button>
+        </div>
+      ) : (
+        <div className="mb-3 rounded-2xl border border-amber-500/30 bg-amber-500/10 p-3">
+          <label className="mb-1.5 flex items-center gap-1.5 text-[10px] font-extrabold uppercase tracking-[0.12em] text-amber-700 dark:text-amber-300">
+            <StickyNote className="h-3.5 w-3.5" />
+            Note for this statement
+          </label>
+
+          <textarea
+            className="input"
+            rows={2}
+            maxLength={NOTE_LIMIT}
+            autoFocus={focusNote}
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+            placeholder={`Write something special for ${member.full_name}…`}
+          />
+
+          <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
+            <span className="text-[11px] text-slate-500">
+              {note.length}/{NOTE_LIMIT} · Appears on this member's statement only
+            </span>
+
+            <div className="flex gap-2">
+              {savedNote ? (
+                <button
+                  type="button"
+                  className="btn-secondary px-3 py-2 text-xs"
+                  disabled={savingNote}
+                  onClick={() => saveNote('')}
+                >
+                  Remove note
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  className="btn-secondary px-3 py-2 text-xs"
+                  disabled={savingNote}
+                  onClick={cancelEditor}
+                >
+                  Cancel
+                </button>
+              )}
+
+              <button
+                type="button"
+                className="btn-primary px-3 py-2 text-xs"
+                disabled={savingNote || !dirty}
+                onClick={() => saveNote(note)}
+              >
+                {savingNote ? 'Saving…' : 'Save note'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <StatementCardV2
-  member={member}
-  payments={payments}
-  chitti={chitti}
-  schedules={schedules}
-  lifts={lifts}
-/>
+        member={member}
+        payments={payments}
+        chitti={chitti}
+        schedules={schedules}
+        lifts={lifts}
+        note={note}
+      />
     </Modal>
   );
 }
-
 // ---------- Receipt modal ----------
 function ReceiptModal({
   payment, member, chittiName, remainingBalance, onClose,

@@ -38,6 +38,7 @@ export type PaymentMode = 'cash' | 'upi' | 'bank' | 'other';
 // ---------- Member ----------
 
 export interface Member {
+       statement_note?: string | null;
   id: string;
   user_id: string;
   chitti_id: string;
@@ -93,6 +94,7 @@ export interface MemberInput {
   lifting_note?: string | null;
 
   statement_sent?: boolean;
+   statement_note?: string | null;
 }
 
 // ---------- Payment ----------
